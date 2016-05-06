@@ -1,0 +1,49 @@
+<div style="float:right;">
+    <select class="form-control input-sm" id="pagesize" style="width:60px;height:28px; margin-top: 5px" onChange="pagesizeSelect(this)">
+        <option value="5">5</option>
+        <option value="10">10</option>
+        <option value="20">20</option>
+        <option value="30">30</option>
+        <option value="40">40</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+    </select>
+</div>
+
+    <ul class="pagination pagination-sm" style="float: right; padding: 0; margin: 0; margin-top: 5px">
+        {% if object_result.has_previous %}
+            {% if search %}
+                <li><a href="?page={{ object_result.previous_page_number }}&pagesize={{ pagesize }}&search={{ search }}">← Previous</a>&nbsp;</li>
+            {% else %}
+                <li><a href="?page={{ object_result.previous_page_number }}&pagesize={{ pagesize }}">← Previous</a>&nbsp;</li>
+            {% endif %}
+        {% else %}
+            <li class="disabled"><a href="#">← Previous</a>&nbsp;</li>
+        {% endif %}
+        <!--  <li class="active"><a href="#">1</a></li>-->
+        {% for p in page_range %}
+            {% ifequal p object_result.number %}
+                <li class="active"><a href="?page={{p}}&pagesize={{ pagesize }}" title="第{{p}}页">{{p}}</a></li>
+            {% else %}
+
+                {% if search %}
+                    <li><a href="?page={{p}}&pagesize={{ pagesize }}&search={{ search }}" title="第{{p}}页">{{p}}</a></li>
+                {% else %}
+                    <li><a href="?page={{p}}&pagesize={{ pagesize }}" title="第{{p}}页">{{p}}</a></li>
+                {% endif %}
+
+            {% endifequal %}
+        {% endfor %}
+        {% if object_result.has_next %}
+            {% if search %}
+                <li><a href="?page={{ object_result.next_page_number }}&pagesize={{ pagesize }}&search={{ search }}" title="下一页">Next →</a>&nbsp;</li>
+            {% else %}
+                <li><a href="?page={{ object_result.next_page_number }}&pagesize={{ pagesize }}" title="下一页">Next →</a>&nbsp;</li>
+            {% endif %}
+        {% else %}
+            <li class="disabled"><a href="#" title="下一页">Next →</a>&nbsp;</li>
+        {% endif %}
+    </ul>
+
+
+

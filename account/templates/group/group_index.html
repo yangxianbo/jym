@@ -1,0 +1,203 @@
+{% extends "base/base.html" %}
+{% load user_templatetags %}
+{% block content %}
+    <div class="wrapper">
+        <header class="main-header">
+            <!-- 导航 -->
+            {% include "sysBase/navbar_custom_menu.html" %}
+        </header>
+        <!-- 左侧菜单  -->
+        {% include "sysBase/left_index.html" %}
+
+
+        <!-- 内容部分 -->
+        <div class="content-wrapper">
+            <!-- Content Header (Page header) -->
+            <section class="content-header">
+                <h1>
+                    用户(组)
+                    <small>运维平台所有用户(组).</small>
+                </h1>
+
+            </section>
+
+            <!-- Main content -->
+            <section class="content">
+                <div class="row">
+                    <div class="col-md-12">
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#">综合</a></li>
+                        </ul>
+                        <div class="box">
+                            <div class="box-header">
+                                <div class="box-tools">
+                                    <div class="input-group">
+                                        <input type="text" placeholder="Search" style="width: 150px;" class="form-control input-sm pull-right" name="table_search" id="search">
+                                        <div class="input-group-btn">
+                                            <button onclick="search_name()" class="btn btn-default btn-sm"><i class="fa fa-search"></i>查询</button><button class="btn btn-primary btn-sm" id="show_add_data" type="button"><li style="color:#ffffff;" class="glyphicon glyphicon-plus"></li>&nbsp;创建用户</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="box-body no-padding" style="margin-top: 10px">
+                                <table class="table table-hover table-striped ">
+                                    <thead>
+                                    <tr>
+                                        <th>组名</th>
+                                        <th>用户列表</th>
+                                        <th>操作</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for node in object_result.object_list %}
+                                        <tr id="tr_id_{{ node.id }}" >
+                                            <td>{{ node.gname }}</td>
+                                            <td>{{ node.members|fq_member_change }}</td>
+                                            <td><a href="#"  onclick="del_data('{{ node.pk }}', '/user/delete_count/', 'UserGroup')"> <li class="glyphicon glyphicon-trash"></li></a>&nbsp; <a href="#" onclick="show_md('{{ node.id }}')"> <li class="glyphicon glyphicon-cog"></li></a></td>
+                                        </tr>
+                                    {% endfor %}
+                                </table>
+                            </div><!-- /.box-body -->
+                            <div style="height:15px;"></div>
+                        </div><!-- /.box -->
+                    </div><!-- /.col -->
+                </div><!-- /.row -->
+            </section><!-- /.content -->
+
+            <div class="modal" id="showModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog" >
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title" id="exampleModalLabel">分组管理</h4>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col-md-12 box box-success">
+                                    <form class="form-horizontal highlight" role="form"  style="width:800px; margin-top: 10px;"  onsubmit="return false">
+
+                                        <div class="form-group">
+                                            <label for="" class="col-sm-2 control-label">组名</label>
+                                            <div class="col-sm-10">
+                                                <input type="text" name="gname" id="gname" class="form-control"  style="width:200px;" check-type="required" required-message="组名不能为空!。">
+                                                <p class="help-block"><li  class="glyphicon glyphicon-info-sign"></li>&nbsp;给组起一个名字，比如：流媒体组.</p>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="" class="col-sm-2 control-label">选择成员</label>
+                                            <div class="col-sm-10">
+                                                <table class="table table-hover" style="width:400px;">
+                                                    <thead>
+                                                    <tr>
+                                                        <th style="width:50px;">#</th>
+                                                        <th style="font-size: 11px;">姓名</th>
+                                                        <th style="font-size: 11px;">部门</th>
+                                                        <th style="font-size: 11px;">Email</th>
+                                                    </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                    {% for row in user_list %}
+                                                        <tr>
+                                                            <td><input type="checkbox" id="id_members" name="members" value="{{ row.user.id }}" /></td>
+                                                            <td>{{ row.user.first_name }}</td>
+                                                            <td>{{ row.department }}</td>
+                                                            <td>{{ row.user.email }}</td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                                <p class="help-block"><li class="glyphicon glyphicon-info-sign"></li>&nbsp; 关联报警分组.
+                                            </div>
+                                        </div>
+                                        <input style="display:none;" type="text"  id="action" value="add">
+                                        <input style="display:none;"  type="text"  id="pk">
+                                        <div class="form-group">
+                                            <label for="" class="col-sm-2 control-label">备注</label>
+                                            <div class="col-sm-10">
+                                                <textarea name="comment" id="comment" class="form-control" rows="3" style="width:380px;"></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="col-sm-offset-2 col-sm-10">
+                                                <button type="submit"  onclick="post_add()" class="btn btn-primary btn-sm"><li class="glyphicon glyphicon-plus"></li>&nbsp;确认</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /.content-wrapper -->
+
+
+        <!-- 工具条切换风格 -->
+        {% include "sysBase/sidebar.html" %}
+        <div class='control-sidebar-bg'></div>
+    </div><!-- ./wrapper -->
+
+
+{% endblock %}
+{% block js_append %}
+    <script type="text/javascript">
+        $("#show_add_data").click(function(){
+            $('#action').val('add')
+            $('#showModal').modal('show')
+        });
+
+        function post_add(){
+            var chk_value = [];
+            if(checkReturn()){
+//                获取选中的成员
+                $("input[name='members']:checked").each(function () {
+                    chk_value.push($(this).val())
+                });
+                $.post('/user/group_index/', {
+                    pk:$('#pk').val(),
+                    gname:$('#gname').val(),
+                    members: chk_value.join(","),
+                    comment: $('#comment').val(),
+                    action:$('#action').val()
+                }, function (e) {
+                    if (e != 'ok'){
+                        alert(e)
+                    }else{
+                        window.location.reload();
+                    }
+                });
+            }else{
+                return false;
+            }
+        }
+
+        function show_md(pk){
+            $('#action').val('md')
+            $.post('/user/show_md_data/', {
+                pk:pk,
+                tables:'UserGroup'
+            }, function (e) {
+                var dataObj=eval("("+e+")");
+                var fields = ['gname'];
+                $.each(fields, function(n,value) {
+                    $('#' + value).val(dataObj[0]['fields'][value])
+                });
+                $('#pk').val(dataObj[0]['pk'])
+                $('#showModal').modal('show')
+
+//              根据value来选择
+                var cboxsg = document.getElementsByName("members");
+                for(var i=0;i<cboxsg.length;i++){
+                    var arr=new Array();
+                    arr=dataObj[0]['fields']['members'].split(',');
+                    $.each(arr,function(n,value) {
+                        if(cboxsg[i].value==value){
+                            cboxsg[i].checked = true;
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+{% endblock %}
