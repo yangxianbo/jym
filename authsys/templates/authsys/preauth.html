@@ -1,0 +1,202 @@
+{% extends "base/base.html" %}
+{% load mini_templatetags %}
+{% block content %}
+    <div class="wrapper">
+        <header class="main-header">
+            <!-- 导航 -->
+            {% include "sysBase/navbar_custom_menu.html" %}
+        </header>
+        <!-- 左侧菜单  -->
+        {% include "sysBase/left_index.html" %}
+
+
+        <!-- 内容部分 -->
+        <div class="content-wrapper">
+            <!-- Content Header (Page header) -->
+            <section class="content-header">
+                <h1>
+                    {{ mac }}的预授权信息
+                    <small>来自外部用户的请求授权信息</small>
+                </h1>
+{#                <ol class="breadcrumb">#}
+{#                    <li><a href="#"><i class="fa fa-dashboard"></i> 主页</a></li>#}
+{#                    <li class="active">节目源</li>#}
+{#                </ol>#}
+            </section>
+
+            <!-- Main content -->
+            <section class="content">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="box">
+                            <div class="box-header">
+                                <div class="box-tools">
+                                    <div class="input-group">
+                                        <input type="text" id="search" name="table_search" class="form-control input-sm pull-right" style="width: 150px;" placeholder="Search"/>
+                                        <div class="input-group-btn">
+                                            <button class="btn btn-default btn-sm" onclick="search_name_auth()"><i class="fa fa-search"></i>查询</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <table class="table" style="width:200px; margin: 0px">
+                                <thead>
+                                </thead>
+                                <tbody>
+                                <tr>
+									<td style="padding:5px 0px 5px 5px"><button type="button" class="btn btn-default btn-sm" onclick="del_batch('/authorization/delauth')"><li class="glyphicon glyphicon-trash"></li>&nbsp;批量删除</button></td>
+
+                                </tr>
+
+
+                                </tbody>
+                            </table>
+                            <div class="table-responsive">
+                                <table class="table table-hover table-bordered">
+                                    <thead>
+                                    <tr>
+                                        <th style="text-align: center;vertical-align:middle;" width="45px"><input id="checkAll" type="checkbox" ></th>
+                                        <th>MAC</th>
+                                        <th>CPUID</th>
+                                        <th>请求授权的APPID</th>
+                                        <th>访问的IP</th>
+										<th>请求时间</th>
+										<th>处理状态</th>
+										<th>操作</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+
+                                    {% for node in object_result.object_list reversed %}
+                                        <tr id="tr_id_{{ node.id }}">
+
+                                            <td style="text-align: center;vertical-align:middle;"><input id="inputCheckbox{{ node.id }}" type="checkbox" name="checkbox" value="{{ node.id }}" /></td>
+                                            <td><span class="badge">{{ mac }}</span></td>
+											<td>{{ node.cpuid }}</td>
+                                            <td>{{ node.appid }}</td>
+                                            <td>{{ node.ipaddress }}</td>
+                                            <td>{{ node.register_time }}</td>
+                                            {% ifequal node.prestate '1' %}
+                                            <td style="vertical-align:middle"><font color="red">未处理</font></td>
+                                            {% else %}
+                                            <td style="vertical-align:middle"><font color="green">已处理</font></td>
+                                            {% endifequal %}
+
+											<td>
+												<a href="#" onclick="del_user('{{ node.id }}', '/authorization/delauth')"> <li title="删除" class="glyphicon glyphicon-trash"></li></a>&nbsp; 
+												<a id="show_add_data" appid={{ node.appid }} cpuid={{ node.cpuid }}> <li title="进行授权" class="glyphicon glyphicon-ok-circle" style="cursor:pointer"></li></a>&nbsp;
+											</td>
+                                        </tr>
+                                    {% endfor %}
+
+                                </table>
+                                {% include "sysBase/pagination.html" %}
+                            </div><!-- /.box-body -->
+                            <div style="height:15px;"></div>
+                        </div><!-- /.box -->
+                    </div><!-- /.col -->
+                </div><!-- /.row -->
+
+
+            </section><!-- /.content -->
+<div class="modal" id="showModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog" >
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title" id="exampleModalLabel">授权信息</h4>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col-md-12 box box-success">
+                                    <form id="data_tb2" class="form-horizontal highlight" role="form"  style="width:800px; margin-top: 10px;"  onsubmit="return false">
+
+                                            <div class="form-group">
+                     							<label for="" class="col-sm-2 control-label">APPID</label>
+                                                <div class="col-sm-10">
+                                                    <input type="text" name="appid" id="appid" class="form-control input-sm"  style="width:100px;" check-type="required" disabled="disabled">
+                                                    <p class="help-block"><li  class="glyphicon glyphicon-info-sign">给此APP关联列表</li>&nbsp;</p>
+                                                    <input type="text" value="{{ pid }}" name="pid" id="pid"  hidden="hidden">
+                                                    <input type="text" value="{{ mac }}" name="mac" id="mac"  hidden="hidden">
+                                                    <input type="text" name="cpuid" id="cpuid"  hidden="hidden">
+
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="" class="col-sm-2 control-label">列表ID</label>
+                                                <div class="col-sm-10">
+                                                    <input type="text" name="playid" id="playid" class="form-control input-sm"  placeholder="列表ID" style="width:100px;" check-type="required">
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="" class="col-sm-2 control-label">授权时长</label>
+                                                <div class="col-sm-10">
+                                                    <input type="text" name="autime" id="autime" class="form-control input-sm"  style="width:200px;" check-type="required">
+                                                </div>
+                                            </div>
+                                            <input style="display:none;" type="text"  name="action" id="action" value="add">
+
+                                            <div class="form-group">
+                                                <div class="col-sm-offset-2 col-sm-10">
+                                                    <button type="submit" id="sub2" class="btn btn-primary btn-sm"><li class="glyphicon glyphicon-plus"></li>&nbsp;确认</button>
+                                                </div>
+                                            </div>
+                                    </form>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div><!-- /.content-wrapper -->
+
+        <!-- 工具条切换风格 -->
+        {% include "sysBase/sidebar.html" %}
+        <div class='control-sidebar-bg'></div>
+    </div><!-- ./wrapper -->
+
+
+{% endblock %}
+{% block js_append %}
+	<script src="/statics/DatePicker/WdatePicker.js" type="text/javascript"></script>
+    <script type="text/javascript">
+    var status=M.get("pk")?M.get("pk"):0;
+    function search_name_auth(){
+        var search  = $('#search').val()
+        if(status!=0){
+          var url="?search="+search+"&pk="+status;
+        }else{
+          var url="?search=" + search;
+        }
+        window.location.href = url
+    }
+
+
+         $("#sub2").click(function(){
+             	var data=$("#data_tb2").Data();
+ 				var url="/authorization/dopreauth/";
+ 				$.post(url,data,function(d){
+                if(d=="ok"){
+                  alert("成功!")
+                location.reload()
+				}else{
+                  alert(d);
+                }
+                }) 
+   
+		
+			});
+        $("#show_add_data").click(function(){
+			var appid=$(this).attr("appid");
+			var cpuid=$(this).attr("cpuid");
+            $('#action').val('add')
+            $('#showModal [name=appid]').val(appid);
+            $('#showModal [name=cpuid]').val(cpuid);
+            $('#showModal').modal('show')
+       
+        });
+
+    </script>
+{% endblock %}

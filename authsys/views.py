@@ -20,6 +20,7 @@ from tools.utils import get_datatables_records,UnixTime,time_change_stime,timest
 from tools.checkauth import Checkauth
 from tools.handle_upfile import Handle_upfile
 from tools.recoder_auth import Recoder_auth
+from tools.aucode import Aucode
 #models
 from authsys.models import *
 
@@ -168,7 +169,7 @@ def do_file(request):
 @login_required()
 def authgroup_index(request, template_name):
     queryset=group_info.objects.all()
-    search_fields = ['groupname', 'agency']
+    search_fields = [ 'agency']
     return get_datatables_records(
         request,
         queryset,
@@ -181,10 +182,9 @@ def authgroup_index(request, template_name):
 @login_required()
 def add_group(request):
     try:
-        groupname=request.POST['groupname']
         agency=request.POST['agency']
         groupdesc=request.POST['desc']
-        add=group_info.objects.create(groupname=groupname,agency=agency,groupdesc=groupdesc)
+        add=group_info.objects.create(agency=agency,groupdesc=groupdesc)
         add.save()
         return HttpResponse('ok')
     except Exception,e:
@@ -198,9 +198,9 @@ def del_group(request):
     if len(tids) > 0:
         gkey=group_info.objects.filter(id__in=tids)
         grouplist=[]
-        for groupname in gkey.values_list('groupname'):
-            grouplist.append(groupname[0])
-        machine_info.objects.filter(groupname__in=grouplist).delete
+        for agency in gkey.values_list('agency'):
+            grouplist.append(agency[0])
+        machine_info.objects.filter(agency__in=grouplist).delete
         gkey.delete()
     return HttpResponse('ok')
 
@@ -208,13 +208,12 @@ def del_group(request):
 def update_group(request):
     ''' 更新组'''
     pk=request.POST['upid']
-    groupname=request.POST['groupname']
     agency=request.POST['agency']
     groupdesc=request.POST['desc']
     gkey=group_info.objects.filter(pk=pk)
-    basename=gkey.values_list('groupname')[0][0]
-    gkey.update(groupname=groupname,agency=agency,groupdesc=groupdesc)
-    machine_info.objects.filter(groupname=basename).update(groupname=groupname)
+    basename=gkey.values_list('agency')[0][0]
+    gkey.update(agency=agency,groupdesc=groupdesc)
+    machine_info.objects.filter(agency=basename).update(agency=agency)
     return HttpResponse('ok')
 
 @login_required()
@@ -246,10 +245,10 @@ def add_package(request):
 
 @login_required()
 def update_package(request):
-    pk=request.POST['pk']
+    pk=request.POST['pid']
     packagename=request.POST['packagename']
     autime=request.POST['autime']
-    package.objects.update(packagename=packagename,autime=autime)
+    package.objects.filter(pk=pk).update(packagename=packagename,autime=autime)
     return HttpResponse('ok')
 
 @login_required()
@@ -263,18 +262,19 @@ def del_package(request):
 
 @login_required()
 def relate_index(request, template_name):
-    _pid = request.REQUEST.get('package', "0")
+    _pid = request.REQUEST.get('pk', "0")
     if _pid != "0":
-        pkey=package.objects.get(packageid=_pid)
+        pkey=package.objects.get(pk=_pid)
         queryset=package_relateapp.objects.filter(packageid=pkey)
-    search_fields = []
+    search_fields = ['appid']
     return get_datatables_records(
         request,
         queryset,
         search_fields,
         template_name,
         extra_context={
-            packagename:pkey.packagename,
+            'packagename':pkey.packagename,
+            'pid':_pid,
         })
 
 @login_required()
@@ -282,7 +282,7 @@ def add_relate(request):
     try:
         pid=request.POST['pid']
         appid=request.POST['appid']
-        playid=request.POST['playlist']
+        playid=request.POST['playid']
         if len(package_relateapp.objects.filter(packageid_id=pid,appid=appid)) == 0:
             add=package_relateapp.objects.create(packageid_id=pid,appid=appid,playid=playid)
             add.save()
@@ -295,10 +295,10 @@ def add_relate(request):
 @login_required()
 def update_relate(request):
     ''' 更新关联'''
-    pk=request.POST['pk']
+    pid=request.POST['pid']
+    playid=request.POST['playid']
     appid=request.POST['appid']
-    playid=request.POST['playlist']
-    package_relateapp.objects.update(appid=appid,playid=playid)
+    package_relateapp.objects.filter(packageid_id=pid,appid=appid).update(playid=playid)
     return HttpResponse('ok')
 
 @login_required()
@@ -309,3 +309,202 @@ def del_relate(request):
     if len(tids) > 0:
         package_relateapp.objects.filter(id__in=tids).delete()
     return HttpResponse('ok')
+
+@login_required()
+def machine_index(request, template_name):
+    queryset_group=group_info.objects.all()
+    queryset=machine_info.objects.all().order_by('-pk')
+    search_fields = ['mac','macnum','cpuid','agency']
+    return get_datatables_records(
+        request,
+        queryset,
+        search_fields,
+        template_name,
+        extra_context={
+            'gname':queryset_group,
+        })
+
+@login_required()
+def add_machine(request):
+    try:
+        mac=request.POST['mac']
+        cpuid=request.POST['cpuid']
+        agency=request.POST['agency']
+        macnum=int(mac,16)
+        if cpuid != "":
+            new=machine_info.objects.create(mac=mac,cpuid=cpuid,macnum=macnum,agency=agency)
+        else:
+            new=machine_info.objects.create(mac=mac,macnum=macnum,agency=agency)
+        new.save()
+        return HttpResponse('ok')
+    except Exception,e:
+        return HttpResponse(e)
+
+@login_required()
+def update_machine(request):
+    try:
+        pk=request.POST['pk']
+        mac=request.POST['mac']
+        macnum=int(mac,16)
+        cpuid=request.POST['cpuid']
+        agency=request.POST['agency']
+        if cpuid != "" :
+            machine_info.objects.filter(pk=pk).update(mac=mac,agency=agency,cpuid=cpuid,macnum=macnum)
+        else:
+            machine_info.objects.filter(pk=pk).update(mac=mac,agency=agency,macnum=macnum)
+        return HttpResponse('ok')
+    except Exception,e:
+        return HttpResponse(e)
+
+@login_required()
+def del_machine(request):
+    pk=request.POST['pk']
+    tids = [ int(i) for i in pk.split(',') ]
+    if len(tids) > 0:
+       machine_info.objects.filter(id__in=tids).delete()
+    return HttpResponse('ok')
+
+@login_required()
+def auth_info(request, template_name):
+    if request.POST:
+        try:
+            pid=request.POST['pid']
+            mac=request.POST['mac']
+            cpuid=request.POST['cpuid']
+            appid=request.POST['appid']
+            playid=request.POST['playid']
+            s_time=request.POST['s_time']
+            autime=request.POST['autime']
+            austate=request.POST['austate']
+            getcode=Aucode("%s+%s+%s"%(mac,cpuid,appid),0)
+            aucode=getcode.main()
+            if request.POST['action'] == 'add':
+                if len(authorization.objects.filter(mac_id=pid,appid=appid)) == 0:
+                    e_time=stime_change_time(time_change_stime(s_time)+(int(autime)*86400))
+                    new=authorization.objects.create(mac_id=pid,appid=appid,playid=playid,s_time=s_time,e_time=e_time,autime=autime,aucode=aucode)
+                    new.save()
+                    return HttpResponse('ok')
+                else:return HttpResponse('APPID已存在')
+            else:
+                pk=request.POST['pk']
+                if len(authorization.objects.filter(mac_id=pid,appid=appid)) == 0:
+                    e_time=stime_change_time(time_change_stime(s_time)+(int(autime)*86400))
+                    authorization.objects.filter(pk=pk).update(appid=appid,playid=playid,s_time=s_time,e_time=e_time,autime=autime,aucode=aucode)
+                    return HttpResponse('ok')
+                else:return HttpResponse('APPID已存在')
+        except Exception,e:
+            return HttpResponse(e)
+    else:
+        _pid = request.REQUEST.get('pk', "0")
+        if _pid != "0":
+            mkey=machine_info.objects.get(pk=_pid)
+            queryset=authorization.objects.filter(mac=mkey).order_by('appid')
+            mac=mkey.mac
+            cpuid=mkey.cpuid
+            agency=mkey.agency
+        search_fields = ['appid','playid','austate']
+        return get_datatables_records(
+            request,
+            queryset,
+            search_fields,
+            template_name,
+            extra_context={
+                'mac':mac,
+                'cpuid':cpuid,
+                'pid':_pid,
+                'agency':agency,
+            })
+
+@login_required()
+def del_auth(request):
+    pk=request.POST['pk']
+    tids = [ int(i) for i in pk.split(',') ]
+    if len(tids) > 0:
+        authorization.objects.filter(id__in=tids).delete()
+    return HttpResponse('ok')
+
+@login_required()
+def show_au_data(request):
+    import authsys.models
+    pk_tmp=request.POST['pk']
+    tables=request.POST['table']
+    db_models=getattr(authsys.models, tables)
+    data = serializers.serialize("json", db_models.objects.filter(**{'id':pk_tmp}))
+    return HttpResponse(data, 'application/javascript')
+
+@login_required()
+def access_log(request, template_name):
+    _pid = request.REQUEST.get('pk', "0")
+    if _pid != "0":
+        mac=request.GET['mac']
+        appid=request.GET['appid']
+        stime = request.GET['start_time']
+        etime = request.GET['end_time']
+        _t = request.REQUEST.get('t', "today")
+        queryset=accesslog.objects.filter(mac_id=_pid,appid=appid,a_time__range=[stime,etime])
+
+    search_fields = ['appid','dostate']
+    return get_datatables_records(
+        request,
+        queryset,
+        search_fields,
+        template_name,
+        extra_context={
+            't':_t,
+            'u_stime':stime,
+            'u_etime':etime,
+            'mac':mac,
+            'pid':_pid,
+            'appid':appid,
+        })
+
+@login_required()
+def pre_machine(request, template_name):
+    queryset=premachine_info.objects.all()
+    search_fields = ['mac','macnum']
+    return get_datatables_records(
+        request,
+        queryset,
+        search_fields,
+        template_name,
+        extra_context={
+        })
+    
+@login_required()
+def del_premachine(request):
+    pk=request.POST['pk']
+    tids = [ int(i) for i in pk.split(',') ]
+    if len(tids) > 0:
+        premachine_info.objects.filter(id__in=tids).delete()
+    return HttpResponse('ok')
+
+@login_required()
+def pre_authinfo(request, template_name):
+    _pid = request.REQUEST.get('pk', "0")
+    if _pid != "0":
+        pkey=premachine_info.objects.get(id=_pid)
+        mac=pkey.mac
+        queryset=preauthorization.objects.filter(mac_id=_pid)
+    search_fields = ['appid']
+    return get_datatables_records(
+        request,
+        queryset,
+        search_fields,
+        template_name,
+        extra_context={
+            'mac':mac,
+            'pid':_pid,
+        })
+
+@login_required()
+def do_auth(request):
+    if request.POST:
+        mac=request.POST['mac']
+        cpuid=request.POST['cpuid']
+        pid=request.POST['pid']
+        appid=request.POST['appid']
+        playid=request.POST['playid']
+        autime=request.POST['autime']
+        getcode=Aucode("%s+%s+%s"%(mac,cpuid,appid),0)
+        aucode=getcode.main()
+        

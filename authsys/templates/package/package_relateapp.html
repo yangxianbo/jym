@@ -15,7 +15,8 @@
             <!-- Content Header (Page header) -->
             <section class="content-header">
                 <h1>
-                    代理商组管理
+                    {{ packagename }}的关联信息
+                    <small>关联的APP及列表</small>
                 </h1>
 {#                <ol class="breadcrumb">#}
 {#                    <li><a href="#"><i class="fa fa-dashboard"></i> 主页</a></li>#}
@@ -33,8 +34,8 @@
                                     <div class="input-group">
                                         <input type="text" id="search" name="table_search" class="form-control input-sm pull-right" style="width: 150px;" placeholder="Search"/>
                                         <div class="input-group-btn">
-                                            <button class="btn btn-default btn-sm" onclick="search_name()"><i class="fa fa-search"></i>查询</button>
-                                    		<td style="padding:5px 0px 5px 0px"><button data-toggle="modal" data-target="#add_group" data-placement="top" class="btn btn-primary btn-sm" id="addgroup" type="button"><li style="color:#ffffff;" class="glyphicon glyphicon-plus"></li>&nbsp;新增组</button></td>
+                                            <button class="btn btn-default btn-sm" onclick="search_name_package()"><i class="fa fa-search"></i>查询</button>
+                                    		<td style="padding:5px 0px 5px 0px"><button data-toggle="modal" data-target="#add_group" data-placement="top" class="btn btn-primary btn-sm" id="addgroup" type="button"><li style="color:#ffffff;" class="glyphicon glyphicon-plus"></li>&nbsp;新增关联</button></td>
                                         </div>
                                     </div>
                                 </div>
@@ -45,9 +46,8 @@
                                 </thead>
                                 <tbody>
                                 <tr>
-									<td style="padding:5px 0px 5px 5px"><button type="button" class="btn btn-default btn-sm" onclick="del_batch('/authorization/delgroup')"><li class="glyphicon glyphicon-trash"></li>&nbsp;批量删除</button></td>
+									<td style="padding:5px 0px 5px 5px"><button type="button" class="btn btn-default btn-sm" onclick="del_batch('/authorization/delrelate')"><li class="glyphicon glyphicon-trash"></li>&nbsp;批量删除</button></td>
                                 </tr>
-
 
                                 </tbody>
                             </table>
@@ -57,18 +57,19 @@
 
 	<div class="modal-header">
 		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-		&nbsp;新增组    
+		&nbsp;新增关联
 	</div>
 
 	<div class="modal-body">
 	<table class="table" id="data_tb">  
 	<tr>  
-		<td>代理商(唯一):</td>
-		<td><input type='text' name='agency' /></td>
+		<td>APPID(唯一):</td>
+		<td><input type='text' name='appid' required/></td>
+		<td><input type='text' value="{{ pid }}" name='pid' hidden="hidden"/></td>
 	</tr>
 	<tr>  
-		<td>描述:</td>
-		<td><input type='text' name='desc' /></td>
+		<td>列表ID:</td>
+		<td><input type='text' name='playid' /></td>
 	</tr>
 	</table>
 	<button class="btn btn-info" type="submit" id="sub">新增</button>
@@ -85,8 +86,9 @@
                                     <thead>
                                     <tr>
                                         <th style="text-align: center;vertical-align:middle;" width="45px"><input id="checkAll" type="checkbox" ></th>
-                                        <th>代理商</th>
-                                         <th>描述</th>
+										<th>套餐名称</th>
+                                        <th>APPID</th>
+                                        <th>列表ID</th>
 										<th>操作</th>
                                     </tr>
                                     </thead>
@@ -98,39 +100,38 @@
                                         <tr id="tr_id_{{ node.id }}">
 
                                             <td style="text-align: center;vertical-align:middle;"><input id="inputCheckbox{{ node.id }}" type="checkbox" name="checkbox" value="{{ node.id }}" /></td>
-                                            <td><span class="badge">{{ node.agency }}</span></td>
-                                            <td>{{ node.groupdesc }}</td>
+                                            <td><span class="badge">{{ packagename }}</span></td>
+											<td>{{ node.appid }}</td>
+											<td>{{ node.playid }}</td>
     										<td>
-<div class="modal fade" id="update_group_{{ node.id }}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal fade" id="update_relate_{{ node.id }}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
  <div class="modal-dialog modal-dialog-center modal-sm">
   <div class="modal-content">
 
 	<div class="modal-header">
 		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-		&nbsp;修改组信息    
+		&nbsp;修改关联信息    
 	</div>
 
 	<div class="modal-body">
 	<table class="table" id="update_tb_{{ node.id }}">  
 	<tr>  
-		<td><input type='hidden' name='upid' value="{{ node.id }}" /></td>
+		<td>APPID(唯一):</td>
+		<td><input type='text' value='{{ node.appid }}' name='appid' disabled="disabled"/></td>
+		<td><input type='text' value='{{ pid }}' name='pid' hidden="hidden"/></td>
 	</tr>
 	<tr>  
-		<td>代理商(唯一):</td>
-		<td><input type='text' name='agency' value="{{ node.agency }}" /></td>
-	</tr>
-	<tr>  
-		<td>描述:</td>
-		<td><input type='text' name='desc' value="{{ node.groupdesc }}" /></td>
+		<td>列表ID:</td>
+		<td><input type='text' value='{{ node.playid }}'  name='playid' /></td>
 	</tr>
 	</table>
 	<button class="btn btn-info" type="submit" id="update_sub_{{ node.id }}">修改</button>
     <script type="text/javascript">
         $("#update_sub_{{ node.id }}").click(function(){
                     var data=$('#update_tb_{{ node.id }}').Data();
-                    $.post("/authorization/updategroup",data,function(e){
+                    $.post("/authorization/updaterelate",data,function(e){
                     if (e == 'ok') {
-                        alert("修改组成功！")
+                        alert("修改关联成功！")
                         window.location.reload();
                     } else {
                         alert(e)
@@ -142,12 +143,12 @@
 	</div>
 
 	<div class="modal-footer">
-		copyright 易视影音
+		copyright joybig
 	</div>
 </div>
 </div>
 </div>
-											  <a href="#" onclick="del_user('{{ node.id }}', '/authorization/delgroup')"> <li title="删除" class="glyphicon glyphicon-trash"></li></a>&nbsp; <a data-toggle="modal" data-target="#update_group_{{ node.id }}" style="cursor:pointer"> <li class="glyphicon glyphicon-cog"  title="修改" ></li></a>
+											  <a href="#" onclick="del_user('{{ node.id }}', '/authorization/delrelate')"> <li title="删除" class="glyphicon glyphicon-trash"></li></a>&nbsp; <a data-toggle="modal" data-target="#update_relate_{{ node.id }}" style="cursor:pointer"> <li class="glyphicon glyphicon-cog"  title="修改" ></li></a>
 											</td>
                                         </tr>
                                     {% endfor %}
@@ -173,12 +174,24 @@
 {% endblock %}
 {% block js_append %}
     <script type="text/javascript">
+    var status=M.get("pk")?M.get("pk"):0;
+    function search_name_package(){
+        var search  = $('#search').val()
+//      window.location.href = "?search=" + search;
+        if(status!=0){
+          var url="?search="+search+"&pk="+status;
+        }else{
+          var url="?search=" + search;
+        }
+        window.location.href = url
+    }
+
 
 	$("#sub").click(function(){
 					var data=$('#data_tb').Data();
-					$.post("/authorization/addgroup",data,function(e){
+					$.post("/authorization/addrelate",data,function(e){
 					if (e == 'ok') {
-						alert("新增组成功！")
+						alert("新增套餐成功！")
 						window.location.reload();
 					} else {
 						alert(e)

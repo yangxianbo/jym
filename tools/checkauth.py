@@ -24,13 +24,14 @@ def Checkauth(mac,cpuid,appid,aucode,ip,localtime):
                     akey.dostate=1
                     akey.dotime=localtime
                     akey.save()
-                    create_log=accesslog.objects.create(mac=akey,cpuid=cpuid,appid=appid,a_time=localtime,ipaddress=ip,dostate=1,aucode=aucode)
+                    create_log=accesslog.objects.create(mac=akey,cpuid=cpuid,appid=appid,ipaddress=ip,dostate=1,aucode=aucode)
                     create_log.save()
                     return -9000
                 else:
                     akey.dostate=0
+                    akey.dotime=localtime
                     akey.save()
-                    create_log=accesslog.objects.create(mac=akey,cpuid=cpuid,appid=appid,a_time=localtime,ipaddress=ip,dostate=0,aucode=aucode)
+                    create_log=accesslog.objects.create(mac=akey,cpuid=cpuid,appid=appid,ipaddress=ip,dostate=0,aucode=aucode)
                     create_log.save()
                     return 0
     except authorization.DoesNotExist:

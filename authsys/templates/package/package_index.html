@@ -15,8 +15,8 @@
             <!-- Content Header (Page header) -->
             <section class="content-header">
                 <h1>
-                    套餐关联信息
-                    <small>关联的APP及列表</small>
+                    套餐信息
+                    <small>套餐基本信息</small>
                 </h1>
 {#                <ol class="breadcrumb">#}
 {#                    <li><a href="#"><i class="fa fa-dashboard"></i> 主页</a></li>#}
@@ -35,7 +35,7 @@
                                         <input type="text" id="search" name="table_search" class="form-control input-sm pull-right" style="width: 150px;" placeholder="Search"/>
                                         <div class="input-group-btn">
                                             <button class="btn btn-default btn-sm" onclick="search_name()"><i class="fa fa-search"></i>查询</button>
-                                    		<td style="padding:5px 0px 5px 0px"><button data-toggle="modal" data-target="#add_group" data-placement="top" class="btn btn-primary btn-sm" id="addgroup" type="button"><li style="color:#ffffff;" class="glyphicon glyphicon-plus"></li>&nbsp;新增关联</button></td>
+                                    		<td style="padding:5px 0px 5px 0px"><button data-toggle="modal" data-target="#add_group" data-placement="top" class="btn btn-primary btn-sm" id="addgroup" type="button"><li style="color:#ffffff;" class="glyphicon glyphicon-plus"></li>&nbsp;新增套餐</button></td>
                                         </div>
                                     </div>
                                 </div>
@@ -46,7 +46,7 @@
                                 </thead>
                                 <tbody>
                                 <tr>
-									<td style="padding:5px 0px 5px 5px"><button type="button" class="btn btn-default btn-sm" onclick="del_batch('/authorization/delrelate')"><li class="glyphicon glyphicon-trash"></li>&nbsp;批量删除</button></td>
+									<td style="padding:5px 0px 5px 5px"><button type="button" class="btn btn-default btn-sm" onclick="del_batch('/authorization/delpackage')"><li class="glyphicon glyphicon-trash"></li>&nbsp;批量删除</button></td>
                                 </tr>
 
                                 </tbody>
@@ -62,9 +62,6 @@
 
 	<div class="modal-body">
 	<table class="table" id="data_tb">  
-    <tr>
-        <td><input type='hidden' name='gid' value="{{ groupkey.id }}" /></td>
-    </tr>
 	<tr>  
 		<td>套餐id(唯一):</td>
 		<td><input type='text' name='packageid' required/></td>
@@ -74,7 +71,7 @@
 		<td><input type='text' name='packagename' /></td>
 	</tr>
 	<tr>  
-		<td>授权时长:</td>
+		<td>授权时长(天):</td>
 		<td><input type='text' name='autime' /></td>
 	</tr>
 	</table>
@@ -92,8 +89,9 @@
                                     <thead>
                                     <tr>
                                         <th style="text-align: center;vertical-align:middle;" width="45px"><input id="checkAll" type="checkbox" ></th>
-                                        <th>appid</th>
-                                        <th>playid</th>
+                                        <th>套餐ID</th>
+                                        <th>套餐名称</th>
+                                        <th>套餐授权时长</th>
 										<th>操作</th>
                                     </tr>
                                     </thead>
@@ -105,8 +103,9 @@
                                         <tr id="tr_id_{{ node.id }}">
 
                                             <td style="text-align: center;vertical-align:middle;"><input id="inputCheckbox{{ node.id }}" type="checkbox" name="checkbox" value="{{ node.id }}" /></td>
-                                            <td><a href="/authorization/appinfo/?appid={{ node.appid }}" title="查看关联APP" ><span class="badge">{{ node.appid }}</span></a></td>
-											<td>{{ node.playid }}</td>
+                                            <td><a href="/authorization/package/?pk={{ node.pk }}" title="查看关联APP" ><span class="badge">{{ node.packageid }}</span></a></td>
+											<td>{{ node.packagename }}</td>
+											<td>{{ node.autime }}天</td>
     										<td>
 <div class="modal fade" id="update_relate_{{ node.id }}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
  <div class="modal-dialog modal-dialog-center modal-sm">
@@ -119,28 +118,27 @@
 
 	<div class="modal-body">
 	<table class="table" id="update_tb_{{ node.id }}">  
-    <tr>
-        <td><input type='hidden' name='gid' value="{{ groupkey.id }}" /></td>
-    </tr>
-    <tr>
-        <td><input type='hidden' name='rid' value="{{ node.id }}" /></td>
-    </tr>
 	<tr>  
-		<td>appid(唯一):</td>
-		<td><input type='text' name='appid' required/></td>
+		<td>套餐ID(唯一):</td>
+		<td><input type='text' value='{{ node.packageid }}' name='packageid' disabled="disabled"/></td>
+		<td><input type='text' value='{{ node.id }}' name='pid' hidden="hidden"/></td>
 	</tr>
 	<tr>  
-		<td>关联的列表:</td>
-		<td><input type='text' name='playlist' /></td>
+		<td>套餐名称:</td>
+		<td><input type='text' value='{{ node.packagename }}'  name='packagename' /></td>
+	</tr>
+	<tr>  
+		<td>授权时长(天):</td>
+		<td><input type='text' value='{{ node.autime }}' name='autime' /></td>
 	</tr>
 	</table>
 	<button class="btn btn-info" type="submit" id="update_sub_{{ node.id }}">修改</button>
     <script type="text/javascript">
         $("#update_sub_{{ node.id }}").click(function(){
                     var data=$('#update_tb_{{ node.id }}').Data();
-                    $.post("/authorization/updaterelate",data,function(e){
+                    $.post("/authorization/updatepackage",data,function(e){
                     if (e == 'ok') {
-                        alert("修改组成功！")
+                        alert("修改套餐成功！")
                         window.location.reload();
                     } else {
                         alert(e)
@@ -152,12 +150,12 @@
 	</div>
 
 	<div class="modal-footer">
-		copyright 易视影音
+		copyright joybig
 	</div>
 </div>
 </div>
 </div>
-											  <a href="#" onclick="del_user('{{ node.id }}', '/authorization/delrelate')"> <li title="删除" class="glyphicon glyphicon-trash"></li></a>&nbsp; <a data-toggle="modal" data-target="#update_relate_{{ node.id }}" style="cursor:pointer"> <li class="glyphicon glyphicon-cog"  title="修改" ></li></a>
+											  <a href="#" onclick="del_user('{{ node.id }}', '/authorization/delpackage')"> <li title="删除" class="glyphicon glyphicon-trash"></li></a>&nbsp; <a data-toggle="modal" data-target="#update_relate_{{ node.id }}" style="cursor:pointer"> <li class="glyphicon glyphicon-cog"  title="修改" ></li></a>
 											</td>
                                         </tr>
                                     {% endfor %}
@@ -183,62 +181,12 @@
 {% endblock %}
 {% block js_append %}
     <script type="text/javascript">
-    var status=M.get("groupname")?M.get("groupname"):'basegroup';
-    function search_name_relate(){
-        var search  = $('#search').val()
-//      window.location.href = "?search=" + search;
-        if(status!=0){
-          var url="?search="+search+"&groupname="+status;
-        }else{
-          var url="?search=" + search;
-        }
-        window.location.href = url
-    }
-
-	function do_file(id, url){
-		if (!confirm("确认要执行？")) {
-			return false;
-		}
-		$.post(url, {
-			pk: id
-		}, function (e) {
-			if (e == 'ok') {
-				alert("执行成功！")
-				window.location.reload();
-			} else {
-				alert(e)
-			}
-		});
-	}
-
-	function do_batch(url){
-		if (!confirm("确认要执行？")) {
-			return false;
-		}
-
-		var chk_value = [];
-		$("input[id*='inputCheckbox']:checked").each(function () {
-			chk_value.push($(this).val())
-		});
-		if (chk_value.length != 0) {
-			$.post(url, {
-				pk: chk_value.join(",")
-			}, function (e) {
-				if (e == 'ok') {
-					alert("执行成功！")
-					window.location.reload();
-				} else {
-					alert(e)
-				}
-			});
-		}
-	}
 
 	$("#sub").click(function(){
 					var data=$('#data_tb').Data();
-					$.post("/authorization/addrelate",data,function(e){
+					$.post("/authorization/addpackage",data,function(e){
 					if (e == 'ok') {
-						alert("新增组成功！")
+						alert("新增套餐成功！")
 						window.location.reload();
 					} else {
 						alert(e)

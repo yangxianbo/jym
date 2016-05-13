@@ -12,7 +12,7 @@ from base import update_or_create
 from authsys.models import *
 
 
-update_or_create(machine_info,{'mac':'qwer'},{'cpuid':'sddd'},{'groupname':'cacaca'})
+#update_or_create(machine_info,{'mac':'qwer'},{'cpuid':'sddd'},{'groupname':'cacaca'})
 #from recoder_auth import Recoder_auth
 
 #a=Recoder_auth('/data/ECM/upfile/test.xls')

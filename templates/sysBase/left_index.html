@@ -32,11 +32,21 @@
 					<i class="fa fa-fw fa-desktop"></i> <span>授权管理</span> <i class="fa fa-angle-left pull-right"></i>
 				</a>
 				<ul class="treeview-menu">
-					<li {% if '/authorization/groupindex/' == request.path  %}class="active"{% endif  %}><a href="/authorization/groupindex/"><i class="fa fa-angle-double-right"></i> 授权组管理</a></li>
-					<li {% if '/authorization/checkfile/' == request.path  %}class="active"{% endif  %}><a href="/authorization/checkfile/"><i class="fa fa-angle-double-right"></i> 授权操作</a></li>
+					<li {% if '/authorization/checkfile/' == request.path  %}class="active"{% endif  %}><a href="/authorization/checkfile/"><i class="fa fa-angle-double-right"></i> 批量文件授权</a></li>
+					<li {% if '/authorization/machineindex/' == request.path  %}class="active"{% endif  %}><a href="/authorization/machineindex/"><i class="fa fa-angle-double-right"></i> 机器信息</a></li>
+					<li {% if '/authorization/groupindex/' == request.path  %}class="active"{% endif  %}><a href="/authorization/groupindex/"><i class="fa fa-angle-double-right"></i> 代理商组管理</a></li>
+					<li {% if '/authorization/managenew/' == request.path  %}class="active"{% endif  %}><a href="/authorization/managenew/"><i class="fa fa-angle-double-right"></i> 预授权管理</a></li>
 				</ul>
 			</li>
 
+			<li class="treeview active">
+				<a href="#">
+					<i class="fa fa-fw fa-desktop"></i> <span>套餐管理</span> <i class="fa fa-angle-left pull-right"></i>
+				</a>
+				<ul class="treeview-menu">
+					<li {% if '/authorization/packageindex/' == request.path  %}class="active"{% endif  %}><a href="/authorization/packageindex/"><i class="fa fa-angle-double-right"></i> 套餐管理</a></li>
+				</ul>
+			</li>
         </ul>
 
 

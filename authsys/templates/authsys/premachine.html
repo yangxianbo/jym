@@ -1,0 +1,101 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+    <div class="wrapper">
+        <header class="main-header">
+            <!-- 导航 -->
+            {% include "sysBase/navbar_custom_menu.html" %}
+        </header>
+        <!-- 左侧菜单  -->
+        {% include "sysBase/left_index.html" %}
+
+
+        <!-- 内容部分 -->
+        <div class="content-wrapper">
+            <!-- Content Header (Page header) -->
+            <section class="content-header">
+                <h1>
+                    未授权机器信息
+                    <small>请求授权的机器</small>
+                </h1>
+{#                <ol class="breadcrumb">#}
+{#                    <li><a href="#"><i class="fa fa-dashboard"></i> 主页</a></li>#}
+{#                    <li class="active">节目源</li>#}
+{#                </ol>#}
+            </section>
+
+            <!-- Main content -->
+            <section class="content">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="box">
+                            <div class="box-header">
+                                <div class="box-tools">
+                                    <div class="input-group">
+                                        <input type="text" id="search" name="table_search" class="form-control input-sm pull-right" style="width: 150px;" placeholder="Search"/>
+                                        <div class="input-group-btn">
+                                            <button class="btn btn-default btn-sm" onclick="search_name()"><i class="fa fa-search"></i>查询</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <table class="table" style="width:200px; margin: 0px">
+                                <thead>
+                                </thead>
+                                <tbody>
+                                <tr>
+									<td style="padding:5px 0px 5px 5px"><button type="button" class="btn btn-default btn-sm" onclick="del_batch('/authorization/delmachine')"><li class="glyphicon glyphicon-trash"></li>&nbsp;批量删除</button></td>
+                                </tr>
+
+                                </tbody>
+                            </table>
+                            <div class="table-responsive">
+                                <table class="table table-hover table-bordered">
+                                    <thead>
+                                    <tr>
+                                        <th style="text-align: center;vertical-align:middle;" width="45px"><input id="checkAll" type="checkbox" ></th>
+                                        <th>MAC</th>
+                                        <th>数字码</th>
+                                        <th>CPUID</th>
+										<th>操作</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+
+                                    {% for node in object_result.object_list reversed%}
+                                        <tr id="tr_id_{{ node.id }}">
+
+                                            <td style="text-align: center;vertical-align:middle;"><input id="inputCheckbox{{ node.id }}" type="checkbox" name="checkbox" value="{{ node.id }}" /></td>
+                                            <td><a href="/authorization/addnew/?pk={{ node.pk }}" title="新增机器授权信息" ><span class="badge">{{ node.mac }}</span></a></td>
+											<td>{{ node.macnum }}</td>
+											<td>{{ node.cpuid }}</td>
+    										<td>
+											  <a href="#" onclick="del_user('{{ node.id }}', '/authorization/delnew')" > <li title="删除" class="glyphicon glyphicon-trash"></li></a>&nbsp;
+											</td>
+                                        </tr>
+                                    {% endfor %}
+
+                                </table>
+                                {% include "sysBase/pagination.html" %}
+                            </div><!-- /.box-body -->
+                            <div style="height:15px;"></div>
+                        </div><!-- /.box -->
+                    </div><!-- /.col -->
+                </div><!-- /.row -->
+
+
+            </section><!-- /.content -->
+        </div><!-- /.content-wrapper -->
+
+        <!-- 工具条切换风格 -->
+        {% include "sysBase/sidebar.html" %}
+        <div class='control-sidebar-bg'></div>
+    </div><!-- ./wrapper -->
+
+
+{% endblock %}
+{% block js_append %}
+    <script type="text/javascript">
+    </script>
+{% endblock %}

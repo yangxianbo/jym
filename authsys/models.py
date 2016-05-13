@@ -10,9 +10,8 @@ class upload_file(models.Model):
     dotime=models.CharField('文件处理时间',max_length=255,null=True,blank=True)
 
 class group_info(models.Model):
-    groupname=models.CharField('组名',max_length=255,unique=True,default="basegroup")
+    agency=models.CharField('代理商',max_length=255,unique=True,default="baseagency")
     groupdesc=models.CharField('描述',max_length=255,null=True,blank=True)
-    agency=models.CharField('代理商',max_length=255,null=True,blank=True)
     def __unicode__(self):
         return self.groupname
 
@@ -28,7 +27,7 @@ class package_relateapp(models.Model):
     playid=models.CharField('关联列表',max_length=255,null=True,blank=True)
 
 class machine_info(models.Model):
-    groupname=models.CharField('组名',max_length=255,default="basegroup")
+    agency=models.CharField('代理商',max_length=255,default="baseagency")
     mac=models.CharField('MAC码',max_length=25,unique=True)
     macnum=models.CharField('数字码',max_length=25,null=True,blank=True)
     cpuid=models.CharField('CPUID',max_length=255,default="ffffffff-d4bd-1afb-3ba9-893c0033c587")
@@ -51,7 +50,7 @@ class authorization(models.Model):
     def __unicode__(self):
         return self.aucode
 
-class permachine_info(models.Model):
+class premachine_info(models.Model):
     mac=models.CharField('MAC码',max_length=25,unique=True)
     macnum=models.CharField('数字码',max_length=25,null=True,blank=True)
     cpuid=models.CharField('CPUID',max_length=255,default="ffffffff-d4bd-1afb-3ba9-893c0033c587")
@@ -59,13 +58,13 @@ class permachine_info(models.Model):
     def __unicode__(self):
         return self.mac
 
-class perauthorization(models.Model):
-    mac=models.ForeignKey(permachine_info, related_name='app_pre_info')
+class preauthorization(models.Model):
+    mac=models.ForeignKey(premachine_info, related_name='app_pre_info')
     cpuid=models.CharField('CPUID',max_length=255,default="ffffffff-d4bd-1afb-3ba9-893c0033c587")
     appid=models.CharField('APPID',max_length=20,null=True,blank=True)
     ipaddress=models.GenericIPAddressField('访问的IP',null=True,blank=True)
     register_time=models.CharField('请求时间',max_length=255)
-    perstate=models.CharField('处理状态',max_length=20,default=1)
+    prestate=models.CharField('处理状态',max_length=20,default=1)
     spare=models.CharField('备用字段',max_length=255,null=True,blank=True)
 
 class accesslog(models.Model):
@@ -74,7 +73,7 @@ class accesslog(models.Model):
     appid=models.CharField('APPID',max_length=20,null=True,blank=True)
     ipaddress=models.GenericIPAddressField('访问的IP',null=True,blank=True)
     aucode=models.CharField('授权码',max_length=255)
-    a_time=models.CharField('鉴权时间',max_length=255,null=True,blank=True)
+    a_time=models.DateTimeField('鉴权时间',auto_now_add=True)
     dostate=models.CharField('鉴权状态',max_length=20)
     spare=models.CharField('备用字段',max_length=255,null=True,blank=True)
     def __unicode__(self):
