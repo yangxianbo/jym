@@ -21,7 +21,7 @@ def Login(request, template_name):
         user = authenticate(username=loguser, password=logpass)
         if user is not None:
             login(request,user)
-            return HttpResponseRedirect("/user/user_index")
+            return HttpResponseRedirect("/app/appindex/")
         return HttpResponseRedirect("/user/login/")
     c = RequestContext(request,{})
     return HttpResponse(vt.render(c))

@@ -35,7 +35,9 @@
                                         <input type="text" id="search" name="table_search" class="form-control input-sm pull-right" style="width: 150px;" placeholder="Search"/>
                                         <div class="input-group-btn">
                                             <button class="btn btn-default btn-sm" onclick="search_name_package()"><i class="fa fa-search"></i>查询</button>
+{% ifequal request.user.userprofile.is_create "0" %}
                                     		<td style="padding:5px 0px 5px 0px"><button data-toggle="modal" data-target="#add_group" data-placement="top" class="btn btn-primary btn-sm" id="addgroup" type="button"><li style="color:#ffffff;" class="glyphicon glyphicon-plus"></li>&nbsp;新增关联</button></td>
+{% endifequal %}
                                         </div>
                                     </div>
                                 </div>
@@ -46,7 +48,10 @@
                                 </thead>
                                 <tbody>
                                 <tr>
+{% ifequal request.user.userprofile.is_delete "0" %}
 									<td style="padding:5px 0px 5px 5px"><button type="button" class="btn btn-default btn-sm" onclick="del_batch('/authorization/delrelate')"><li class="glyphicon glyphicon-trash"></li>&nbsp;批量删除</button></td>
+{% else %}<td style="padding:5px 0px 5px 5px"><button type="button" class="btn btn-default btn-sm">&nbsp;套餐关联</button></td>
+{% endifequal %}
                                 </tr>
 
                                 </tbody>
@@ -148,13 +153,64 @@
 </div>
 </div>
 </div>
-											  <a href="#" onclick="del_user('{{ node.id }}', '/authorization/delrelate')"> <li title="删除" class="glyphicon glyphicon-trash"></li></a>&nbsp; <a data-toggle="modal" data-target="#update_relate_{{ node.id }}" style="cursor:pointer"> <li class="glyphicon glyphicon-cog"  title="修改" ></li></a>
+{% ifequal request.user.userprofile.is_delete "0" %}
+											  <a href="#" onclick="del_user('{{ node.id }}', '/authorization/delrelate')"> <li title="删除" class="glyphicon glyphicon-trash"></li></a>&nbsp; 
+{% endifequal %}
+{% ifequal request.user.userprofile.is_modify "0" %}
+											  <a data-toggle="modal" data-target="#update_relate_{{ node.id }}" style="cursor:pointer"> <li class="glyphicon glyphicon-cog"  title="修改" ></li></a>
+{% endifequal %}
 											</td>
                                         </tr>
                                     {% endfor %}
 
                                 </table>
-                                {% include "sysBase/pagination.html" %}
+								<div style="float:right;">
+									<select class="form-control input-sm" id="pagesize" style="width:60px;height:28px; margin-top: 5px" onChange="pagesizeSelect(this)">
+										<option value="5">5</option>
+										<option value="10">10</option>
+										<option value="20">20</option>
+										<option value="30">30</option>
+										<option value="40">40</option>
+										<option value="50">50</option>
+										<option value="100">100</option>
+									</select>
+								</div>
+
+									<ul class="pagination pagination-sm" style="float: right; padding: 0; margin: 0; margin-top: 5px">
+										{% if object_result.has_previous %}
+											{% if search %}
+												<li><a href="?pk={{pid}}&page={{ object_result.previous_page_number }}&pagesize={{ pagesize }}&search={{ search }}">← Previous</a>&nbsp;</li>
+											{% else %}
+												<li><a href="?pk={{pid}}&page={{ object_result.previous_page_number }}&pagesize={{ pagesize }}">← Previous</a>&nbsp;</li>
+											{% endif %}
+										{% else %}
+											<li class="disabled"><a href="#">← Previous</a>&nbsp;</li>
+										{% endif %}
+										<!--  <li class="active"><a href="#">1</a></li>-->
+										{% for p in page_range %}
+											{% ifequal p object_result.number %}
+												<li class="active"><a href="?pk={{pid}}&page={{p}}&pagesize={{ pagesize }}" title="第{{p}}页">{{p}}</a></li>
+											{% else %}
+
+												{% if search %}
+													<li><a href="?pk={{pid}}&page={{p}}&pagesize={{ pagesize }}&search={{ search }}" title="第{{p}}页">{{p}}</a></li>
+												{% else %}
+													<li><a href="?pk={{pid}}&page={{p}}&pagesize={{ pagesize }}" title="第{{p}}页">{{p}}</a></li>
+												{% endif %}
+
+											{% endifequal %}
+										{% endfor %}
+										{% if object_result.has_next %}
+											{% if search %}
+												<li><a href="?pk={{pid}}&page={{ object_result.next_page_number }}&pagesize={{ pagesize }}&search={{ search }}" title="下一页">Next →</a>&nbsp;</li>
+											{% else %}
+												<li><a href="?pk={{pid}}&page={{ object_result.next_page_number }}&pagesize={{ pagesize }}" title="下一页">Next →</a>&nbsp;</li>
+											{% endif %}
+										{% else %}
+											<li class="disabled"><a href="#" title="下一页">Next →</a>&nbsp;</li>
+										{% endif %}
+									</ul>
+
                             </div><!-- /.box-body -->
                             <div style="height:15px;"></div>
                         </div><!-- /.box -->

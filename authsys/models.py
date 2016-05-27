@@ -12,8 +12,14 @@ class upload_file(models.Model):
 class group_info(models.Model):
     agency=models.CharField('代理商',max_length=255,unique=True,default="baseagency")
     groupdesc=models.CharField('描述',max_length=255,null=True,blank=True)
+    tickerid=models.CharField('跑马灯ID',max_length=20,null=True,blank=True)
+    blacklocation=models.CharField('区域限制',max_length=255,default="")
     def __unicode__(self):
-        return self.groupname
+        return self.agency
+
+class ticker_info(models.Model):
+    ticker=models.TextField('跑马灯',max_length=500,null=True,blank=True)
+    tickerid=models.CharField('跑马灯ID',max_length=20,unique=True)
 
 class package(models.Model):
     packageid=models.CharField('套餐ID',max_length=20,unique=True)
@@ -31,7 +37,7 @@ class machine_info(models.Model):
     mac=models.CharField('MAC码',max_length=25,unique=True)
     macnum=models.CharField('数字码',max_length=25,null=True,blank=True)
     cpuid=models.CharField('CPUID',max_length=255,default="ffffffff-d4bd-1afb-3ba9-893c0033c587")
-    spare=models.CharField('备用字段',max_length=255,null=True,blank=True)
+    blacklocation=models.CharField('区域限制',max_length=255,default="")
     def __unicode__(self):
         return self.mac
 
@@ -78,13 +84,3 @@ class accesslog(models.Model):
     spare=models.CharField('备用字段',max_length=255,null=True,blank=True)
     def __unicode__(self):
         return self.aucode
-
-class appinfo(models.Model):
-    appid=models.CharField(max_length=50,unique=True)
-    appname=models.CharField(max_length=255,null=True,blank=True)
-    appdesc=models.CharField(max_length=255,null=True,blank=True)
-
-class apprelate(models.Model):
-    appid=models.ForeignKey(appinfo, related_name='app_info')
-    version=models.CharField(max_length=255,unique=True)
-    download_url=models.CharField(max_length=255,null=True,blank=True)

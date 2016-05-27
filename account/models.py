@@ -10,7 +10,9 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User)
     department = models.CharField('部门', max_length=255, default="未知")
     mobile = models.CharField('联系电话', max_length=255, default="未知")
-    access_list = models.CharField('权限列表', max_length=255, default="未知", null=True)
+    is_create =models.CharField('新增', max_length=10, default="1")
+    is_delete =models.CharField('删除', max_length=10, default="1")
+    is_modify =models.CharField('修改', max_length=10, default="1")
 
 def create_user_profile(sender, instance, created, **kwargs):
     if created:

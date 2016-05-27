@@ -7,9 +7,9 @@ from functools import wraps
 def login_required():
     def decorator(func):
         def inner_decorator(request, *args, **kwargs):
-            print request.user
-            print request
-            if not request.user.username:
+#            print request.user
+#            print request
+            if not request.user.username or request.user.is_active == 0:
                 return HttpResponseRedirect('/user/login/')
             return func(request, *args, **kwargs)
         return wraps(func)(inner_decorator)

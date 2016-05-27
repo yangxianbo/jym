@@ -26,7 +26,17 @@ def user_index(request, template_name):
         username=request.POST["username"]
         password=request.POST["password"]
         mobile=request.POST["mobile"]
-        is_active=request.POST["id_is_active"]
+        is_active=request.POST["is_active"]
+
+        if request.POST['is_create'] == "true":
+            is_create = 0
+        else:is_create = 1
+        if request.POST['is_modify'] == "true":
+            is_modify = 0
+        else:is_modify = 1
+        if request.POST['is_delete'] == "true":
+            is_delete = 0
+        else:is_delete = 1
         email=request.POST["email"]
         department=request.POST["department"]
 
@@ -39,19 +49,19 @@ def user_index(request, template_name):
                 else:
                     user.is_staff=False
                 user.save()
-                UserProfile.objects.filter(user__username=username).update(mobile=mobile, department=department)
+                UserProfile.objects.filter(user__username=username).update(mobile=mobile, department=department,is_delete=is_delete,is_create=is_create,is_modify=is_modify)
                 return HttpResponse('ok')
             except Exception as error:
                 return HttpResponse(str(error))
         else:
             pk=request.POST["pk"]
             try:
-                user = User.objects.filter(username=username).update(username=username, email=email,first_name=first_name)
-#                if is_active == "True":
-#                    User.objects.filter(id=pk).update(username=username, email=email,first_name=first_name, is_active=1)
-#                else:
-#                    User.objects.filter(id=pk).update(username=username, email=email,first_name=first_name,is_active=0)
-                UserProfile.objects.filter(user__username=username).update(mobile=mobile, department=department)
+#                user = User.objects.filter(username=username).update(username=username, email=email,first_name=first_name)
+                if is_active == "true":
+                    User.objects.filter(id=pk).update(username=username, email=email,first_name=first_name, is_active=1)
+                else:
+                    User.objects.filter(id=pk).update(username=username, email=email,first_name=first_name,is_active=0)
+                UserProfile.objects.filter(user__username=username).update(mobile=mobile, department=department,is_delete=is_delete,is_create=is_create,is_modify=is_modify)
                 return HttpResponse('ok')
             except Exception as error:
                 return HttpResponse(str(error))
@@ -79,6 +89,7 @@ def show_md_data(request):
         d[0]['fields']['username']=u.username
         d[0]['fields']['first_name']=u.first_name
         d[0]['fields']['email']=u.email
+        d[0]['fields']['is_active']=u.is_active
         return  HttpResponse (json.dumps(d), 'application/javascript')
     return HttpResponse(data, 'application/javascript')
 

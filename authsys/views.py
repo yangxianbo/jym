@@ -21,74 +21,81 @@ from tools.checkauth import Checkauth
 from tools.handle_upfile import Handle_upfile
 from tools.recoder_auth import Recoder_auth
 from tools.aucode import Aucode
+from tools.dopreauth import Dopreauth
 #models
 from authsys.models import *
+from appinfo.models import *
 
 
 def manage_auth(request):
     ip=getip(request)
     localtime=UnixTime()
     if request.method == 'POST':
-        jstring=request.body
-        manage=json.loads(jstring)
-        if isinstance(manage,dict):
-            try:
-                mac=manage['mac']
-                cpuid=manage['cpuid']
-                appid=manage['appid']
-                find_list=authorization.objects.filter(Q(mac__mac=mac)&Q(appid=appid))
-                if len(find_list) != 0:
-                    auinfo=find_list[0]
-                    if int(auinfo.austate) != 1:
-                        manage['aucode']=auinfo.aucode            
-                        return HttpResponse(json.dumps(manage ,indent=4,ensure_ascii=False), 'application/javascript')
-                    else:
-                        return HttpResponse(-9001)
-                else:
-                    try:
-                        fkey=permachine_info.objects.get(mac=mac)
-                        find_per_list=perauthorization.objects.filter(Q(mac__mac=mac)&Q(appid=appid))
-                        if len(find_per_list) != 0:
-                            update_perauth=find_per_list[0]
-                            update_perauth.register_time=localtime
-                            update_perauth.ipaddress=ip
-                            update_perauth.save()
-                            return HttpResponse(1)
-                        else:
-                            create_perauth=perauthorization.objects.create(mac=fkey,appid=appid,cpuid=cpuid,register_time=localtime,ipaddress=ip)
-                            create_perauth.save()
-                            return HttpResponse(2)
-                    except permachine_info.DoesNotExist:
-                        macnum=int(mac,16)
-                        create_permachine=permachine_info.objects.create(mac=mac,cpuid=cpuid,macnum=macnum)
-                        create_permachine.save()
-                        pkey=permachine_info.objects.get(mac=mac)
-                        create_perauth=perauthorization.objects.create(mac=pkey,appid=appid,cpuid=cpuid,register_time=localtime,ipaddress=ip)
-                        create_perauth.save()
-                        return HttpResponse(2)
-            except KeyError:
-                return HttpResponse(-9002)
+        mac=request.POST['mac']
+        cpuid=request.POST['cpuid']
+        appid=request.POST['appid']
+        find_list=authorization.objects.filter(Q(mac__mac=mac)&Q(appid=appid))
+        if len(find_list) != 0:
+            auinfo=find_list[0]
+            if int(auinfo.austate) != 1:
+                manage['aucode']=auinfo.aucode            
+                return HttpResponse(json.dumps(manage ,indent=4,ensure_ascii=False), 'application/javascript')
+            else:
+                redict={'code':'-9001'}
+                return HttpResponse(json.dumps(redict ,indent=4,ensure_ascii=False), 'application/javascript')
         else:
-            raise Http404
+            try:
+                fkey=permachine_info.objects.get(mac=mac)
+                find_per_list=perauthorization.objects.filter(Q(mac__mac=mac)&Q(appid=appid))
+                if len(find_per_list) != 0:
+                    update_perauth=find_per_list[0]
+                    update_perauth.register_time=localtime
+                    update_perauth.ipaddress=ip
+                    update_perauth.save()
+                    redict={'code':'1'}
+                    return HttpResponse(json.dumps(redict ,indent=4,ensure_ascii=False), 'application/javascript')
+                else:
+                    create_perauth=perauthorization.objects.create(mac=fkey,appid=appid,cpuid=cpuid,register_time=localtime,ipaddress=ip)
+                    create_perauth.save()
+                    redict={'code':'2'}
+                    return HttpResponse(json.dumps(redict ,indent=4,ensure_ascii=False), 'application/javascript')
+            except permachine_info.DoesNotExist:
+                macnum=int(mac,16)
+                create_permachine=permachine_info.objects.create(mac=mac,cpuid=cpuid,macnum=macnum)
+                create_permachine.save()
+                pkey=permachine_info.objects.get(mac=mac)
+                create_perauth=perauthorization.objects.create(mac=pkey,appid=appid,cpuid=cpuid,register_time=localtime,ipaddress=ip)
+                create_perauth.save()
+                redict={'code':'2'}
+                return HttpResponse(json.dumps(redict ,indent=4,ensure_ascii=False), 'application/javascript')
 
 def check_auth(request):
     ip=getip(request)
     localtime=UnixTime()
     if request.method == 'POST':
-        jstring=request.body
-        check=json.loads(jstring)
-        if isinstance(check,dict):
-            try:
-                mac=check['mac']
-                cpuid=check['cpuid']
-                appid=check['appid']
-                aucode=check['aucode']
-                check_status=Checkauth(mac,cpuid,appid,aucode,ip,localtime)
-                return HttpResponse(check_status)
-            except KeyError:
-                return HttpResponse(-9002)
-        else:
-            raise Http404
+        mac=request.POST['mac']
+        cpuid=request.POST['cpuid']
+        appid=request.POST['appid']
+        aucode=request.POST['aucode']
+        check_status=Checkauth(mac,cpuid,appid,aucode,ip,localtime)
+        redict={'code':'check_status'}
+        return HttpResponse(json.dumps(redict ,indent=4,ensure_ascii=False), 'application/javascript')
+
+def get_ticker(request):
+    ticker={}
+    mac=request.POST['mac']
+    appid=request.POST['appid']
+    agency=machine_info.objects.get(mac=mac).agency
+    tickerid=group_info.objects.get(agency=agency).tickerid
+    if tickerid != None:
+        groupticker=ticker_info.objects.get(tickerid=tickerid).ticker
+        ticker['group']=groupticker
+    appticker=appinfo.objects.get(appid=appid).ticker
+    if appticker != None:
+        ticker['app']=appticker
+    else:
+        ticker['app']=''
+    return HttpResponse(json.dumps(ticker ,indent=4,ensure_ascii=False), 'application/javascript')
 
 @login_required()
 def check_file(request, template_name):
@@ -118,7 +125,8 @@ def up_file(request):
             if dostate == "":
                 check_file=upload_file.objects.filter(filename=f.name)
                 if len(check_file) == 0:
-                    upload_file.objects.create(filename=f.name,filepath=upstate,createtime=localtime)
+                    new=upload_file.objects.create(filename=f.name,filepath=upstate,createtime=localtime)
+                    new.save()
                 else:
                     check_file.update(createtime=localtime,status=1)
                 return HttpResponse("up_ok")
@@ -127,7 +135,8 @@ def up_file(request):
                 if len(check_file) == 0:
                     dofile=Recoder_auth(upstate)
                     dofile.main()
-                    upload_file.objects.create(filename=f.name,filepath=upstate,status=0,createtime=localtime,dotime=localtime)
+                    new=upload_file.objects.create(filename=f.name,filepath=upstate,status=0,createtime=localtime,dotime=localtime)
+                    new.save()
                 else:
                     dofile=Recoder_auth(upstate)
                     dofile.main()
@@ -169,13 +178,15 @@ def do_file(request):
 @login_required()
 def authgroup_index(request, template_name):
     queryset=group_info.objects.all()
-    search_fields = [ 'agency']
+    tickerinfo=ticker_info.objects.all()
+    search_fields = ['agency']
     return get_datatables_records(
         request,
         queryset,
         search_fields,
         template_name,
         extra_context={
+            'tickerinfo':tickerinfo,
         })
 
 
@@ -184,7 +195,8 @@ def add_group(request):
     try:
         agency=request.POST['agency']
         groupdesc=request.POST['desc']
-        add=group_info.objects.create(agency=agency,groupdesc=groupdesc)
+        blacklocation=request.POST['blacklocation']
+        add=group_info.objects.create(agency=agency,groupdesc=groupdesc,blacklocation=blacklocation)
         add.save()
         return HttpResponse('ok')
     except Exception,e:
@@ -210,10 +222,12 @@ def update_group(request):
     pk=request.POST['upid']
     agency=request.POST['agency']
     groupdesc=request.POST['desc']
+    tickerid=request.POST['ticker']
+    blacklocation=request.POST['blacklocation']
     gkey=group_info.objects.filter(pk=pk)
     basename=gkey.values_list('agency')[0][0]
-    gkey.update(agency=agency,groupdesc=groupdesc)
-    machine_info.objects.filter(agency=basename).update(agency=agency)
+    gkey.update(agency=agency,groupdesc=groupdesc,tickerid=tickerid,blacklocation=blacklocation)
+    machine_info.objects.filter(agency=basename).update(agency=agency,blacklocation=blacklocation)
     return HttpResponse('ok')
 
 @login_required()
@@ -330,9 +344,10 @@ def add_machine(request):
         mac=request.POST['mac']
         cpuid=request.POST['cpuid']
         agency=request.POST['agency']
+        blacklocation=request.POST['blacklocation']
         macnum=int(mac,16)
         if cpuid != "":
-            new=machine_info.objects.create(mac=mac,cpuid=cpuid,macnum=macnum,agency=agency)
+            new=machine_info.objects.create(mac=mac,cpuid=cpuid,macnum=macnum,agency=agency,blacklocation=blacklocation)
         else:
             new=machine_info.objects.create(mac=mac,macnum=macnum,agency=agency)
         new.save()
@@ -348,8 +363,9 @@ def update_machine(request):
         macnum=int(mac,16)
         cpuid=request.POST['cpuid']
         agency=request.POST['agency']
+        blacklocation=request.POST['blacklocation']
         if cpuid != "" :
-            machine_info.objects.filter(pk=pk).update(mac=mac,agency=agency,cpuid=cpuid,macnum=macnum)
+            machine_info.objects.filter(pk=pk).update(mac=mac,agency=agency,cpuid=cpuid,macnum=macnum,blacklocation=blacklocation)
         else:
             machine_info.objects.filter(pk=pk).update(mac=mac,agency=agency,macnum=macnum)
         return HttpResponse('ok')
@@ -387,11 +403,9 @@ def auth_info(request, template_name):
                 else:return HttpResponse('APPID已存在')
             else:
                 pk=request.POST['pk']
-                if len(authorization.objects.filter(mac_id=pid,appid=appid)) == 0:
-                    e_time=stime_change_time(time_change_stime(s_time)+(int(autime)*86400))
-                    authorization.objects.filter(pk=pk).update(appid=appid,playid=playid,s_time=s_time,e_time=e_time,autime=autime,aucode=aucode)
-                    return HttpResponse('ok')
-                else:return HttpResponse('APPID已存在')
+                e_time=stime_change_time(time_change_stime(s_time)+(int(autime)*86400))
+                authorization.objects.filter(pk=pk).update(playid=playid,s_time=s_time,e_time=e_time,autime=autime,aucode=aucode)
+                return HttpResponse('ok')
         except Exception,e:
             return HttpResponse(e)
     else:
@@ -507,4 +521,57 @@ def do_auth(request):
         autime=request.POST['autime']
         getcode=Aucode("%s+%s+%s"%(mac,cpuid,appid),0)
         aucode=getcode.main()
+        preauth=Dopreauth(mac,cpuid,appid,playid,aucode,autime)
+        if preauth.main() == 0:
+            preauthorization.objects.filter(id=pid).delete()
+        return HttpResponse('ok')
         
+@login_required()
+def del_preauth(request):
+    pk=request.POST['pk']
+    tids = [ int(i) for i in pk.split(',') ]
+    if len(tids) > 0:
+        preauthorization.objects.filter(id__in=tids).delete()
+    return HttpResponse('ok')
+
+@login_required()
+def ticker_index(request, template_name):
+    queryset=ticker_info.objects.all()
+    search_fields = ['tickerid']
+    return get_datatables_records(
+        request,
+        queryset,
+        search_fields,
+        template_name,
+        extra_context={
+        })
+
+@login_required()
+def add_ticker(request):
+    try:
+        tickerid=request.POST['tickerid']
+        ticker=request.POST['desc']
+        new=ticker_info.objects.create(tickerid=tickerid,ticker=ticker)
+        new.save()
+        return HttpResponse('ok')
+    except Exception,e:
+        return HttpResponse(e)
+
+@login_required()
+def update_ticker(request):
+    try:
+        pk=request.POST['upid']
+        tickerid=request.POST['tickerid']
+        ticker=request.POST['desc']
+        ticker_info.objects.filter(pk=pk).update(tickerid=tickerid,ticker=ticker)
+        return HttpResponse('ok')
+    except Exception,e:
+        return HttpResponse(e)
+
+@login_required()
+def del_ticker(request):
+    pk=request.POST['pk']
+    tids = [ int(i) for i in pk.split(',') ]
+    if len(tids) > 0:
+        ticker_info.objects.filter(id__in=tids).delete()
+    return HttpResponse('ok')

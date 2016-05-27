@@ -39,7 +39,9 @@
                                         <input type="text" id="search" name="table_search" class="form-control input-sm pull-right" style="width: 150px;" placeholder="Search"/>
                                         <div class="input-group-btn">
                                             <button class="btn btn-default btn-sm" onclick="search_name_upfile()"><i class="fa fa-search"></i>查询</button>
+{% ifequal request.user.userprofile.is_create "0" %}
                                     		<td style="padding:5px 0px 5px 0px"><button data-toggle="modal" data-target="#show_upfile" data-placement="top" class="btn btn-primary btn-sm" id="showupfile" type="button"><li style="color:#ffffff;" class="glyphicon glyphicon-plus"></li>&nbsp;上传文件</button></td>
+{% endifequal %}
                                         </div>
                                     </div>
                                 </div>
@@ -50,8 +52,13 @@
                                 </thead>
                                 <tbody>
                                 <tr>
+{% ifequal request.user.userprofile.is_delete "0" %}
 									<td style="padding:5px 0px 5px 5px"><button type="button" class="btn btn-default btn-sm" onclick="del_batch('/authorization/delfile')"><li class="glyphicon glyphicon-trash"></li>&nbsp;批量删除</button></td>
+{% else %}<td style="padding:5px 0px 5px 5px"><button type="button" class="btn btn-default btn-sm">&nbsp;批量管理</button></td>
+{% endifequal %}
+{% ifequal request.user.userprofile.is_modify "0" %}
 									<td style="padding:5px 0px 5px 5px"><button type="button" class="btn btn-default btn-sm" onclick="do_batch('/authorization/dofile')"><li class="glyphicon glyphicon-off"></li>&nbsp;批量执行</button></td>
+{% endifequal %}
 
 
                                 </tr>
@@ -117,7 +124,14 @@
 											{% else %}
                                               <td>{{ node.dotime }}</td>
 											{% endif %}
-										<td><a href="#" onclick="del_user('{{ node.id }}', '/authorization/delfile')"> <li title="删除" class="glyphicon glyphicon-trash"></li></a>&nbsp; <a onclick="do_file('{{ node.id }}','/authorization/dofile')" style="cursor:pointer"> <li class="glyphicon glyphicon-off"  title="重新执行" ></li></a></td>
+										<td>
+{% ifequal request.user.userprofile.is_delete "0" %}
+											<a href="#" onclick="del_user('{{ node.id }}', '/authorization/delfile')"> <li title="删除" class="glyphicon glyphicon-trash"></li></a>&nbsp;
+{% endifequal %}
+{% ifequal request.user.userprofile.is_modify "0" %}
+											 <a onclick="do_file('{{ node.id }}','/authorization/dofile')" style="cursor:pointer"> <li class="glyphicon glyphicon-off"  title="重新执行" ></li></a>
+{% endifequal %}
+										</td>
                                         </tr>
                                     {% endfor %}
 
@@ -149,7 +163,6 @@
             sub(data);
          });
          function sub(param_data){
-            console.log(param_data)
             var url="/authorization/upfile";
             $.ajaxFileUpload({
 		    url:url,

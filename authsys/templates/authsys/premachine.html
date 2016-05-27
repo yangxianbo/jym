@@ -45,7 +45,10 @@
                                 </thead>
                                 <tbody>
                                 <tr>
+{% ifequal request.user.userprofile.is_delete "0" %}
 									<td style="padding:5px 0px 5px 5px"><button type="button" class="btn btn-default btn-sm" onclick="del_batch('/authorization/delmachine')"><li class="glyphicon glyphicon-trash"></li>&nbsp;批量删除</button></td>
+{% else %}<td style="padding:5px 0px 5px 5px"><button type="button" class="btn btn-default btn-sm">&nbsp;预授权管理</button></td>
+{% endifequal %}
                                 </tr>
 
                                 </tbody>
@@ -71,7 +74,9 @@
 											<td>{{ node.macnum }}</td>
 											<td>{{ node.cpuid }}</td>
     										<td>
+{% ifequal request.user.userprofile.is_delete "0" %}
 											  <a href="#" onclick="del_user('{{ node.id }}', '/authorization/delnew')" > <li title="删除" class="glyphicon glyphicon-trash"></li></a>&nbsp;
+{% endifequal %}
 											</td>
                                         </tr>
                                     {% endfor %}

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import json,re, time, os, datetime
+import json,re, time, os, datetime,sys
 from django import template
 register = template.Library()
 
@@ -26,6 +26,7 @@ def rrdtool_time(value):
 
 def strf_time(value):
     return value.strftime('%Y-%m-%d %H:%M:%S')
+
 
 register.filter(rrdtool_time)
 register.filter(strf_time)

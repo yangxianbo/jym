@@ -20,6 +20,7 @@ urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url('^user/',include('account.urls')),
     url('^authorization/',include('authsys.urls')),
+    url('^app/',include('appinfo.urls')),
     url('^playlist/',include('playlist.urls')),
 ]
 

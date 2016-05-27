@@ -46,6 +46,10 @@
                                         <th>部门</th>
                                         <th><i class="fa fa-envelope"></i>Email</th>
                                         <th><i class="fa fa-fw fa-mobile"></i>手机短信</th>
+                                        <th>新增</th>
+                                        <th>修改</th>
+                                        <th>删除</th>
+                                        <th>是否启用</th>
                                         <th>操作</th>
                                     </tr>
                                     </thead>
@@ -58,7 +62,27 @@
                                             <td>{{ node.department }}</td>
                                             <td>{{ node.user.email }}</td>
                                             <td>{{ node.mobile }}</td>
-                                            <td><a href="#" onclick="del_user('{{ node.user.pk }}', '/user/del_user_index/')"> <li class="glyphicon glyphicon-trash"></li></a>&nbsp; <a onclick="show_md('{{ node.pk }}')"> <li class="glyphicon glyphicon-cog"></li></a></td>
+											{% ifequal node.user.userprofile.is_create '1' %}
+												<td style="vertical-align:middle"><font color="red">否</font></td>
+											{% else %}
+												<td style="vertical-align:middle"><font color="green">是</font></td>
+											{% endifequal %}
+											{% ifequal node.user.userprofile.is_modify '1' %}
+												<td style="vertical-align:middle"><font color="red">否</font></td>
+											{% else %}
+												<td style="vertical-align:middle"><font color="green">是</font></td>
+											{% endifequal %}
+											{% ifequal node.user.userprofile.is_delete '1' %}
+												<td style="vertical-align:middle"><font color="red">否</font></td>
+											{% else %}
+												<td style="vertical-align:middle"><font color="green">是</font></td>
+											{% endifequal %}
+											{% ifequal node.user.is_active True %}
+												<td style="vertical-align:middle"><font color="green">启用</font></td>
+											{% else %}
+												<td style="vertical-align:middle"><font color="red">禁用</font></td>
+											{% endifequal %}
+                                            <td><a href="#" onclick="del_user('{{ node.user.pk }}', '/user/del_user_index/')"> <li class="glyphicon glyphicon-trash"></li></a>&nbsp; <a onclick="show_md('{{ node.pk }}')" style="cursor:pointer"> <li class="glyphicon glyphicon-cog"></li></a></td>
                                         </tr>
                                     {% endfor %}
                                 </table>
@@ -79,7 +103,7 @@
                         <div class="modal-body">
                             <div class="row">
                                 <div class="col-md-12 box box-success">
-                                    <form class="form-horizontal highlight" role="form"  style="width:800px; margin-top: 10px;"  onsubmit="return false">
+                                    <form id="sub_data" class="form-horizontal highlight" role="form"  style="width:800px; margin-top: 10px;"  onsubmit="return false">
 
                                             <div class="form-group">
                                                 <label for="" class="col-sm-2 control-label">用户名</label>
@@ -125,19 +149,31 @@
                                                 </div>
                                             </div>
                                             <div class="form-group">
+                                                <label for="" class="col-sm-2 control-label">权限</label>
+                                                <div class="col-sm-10">
+													<label for="is_create" class="control-label">新增:</label>
+													<span><input id="is_create" type="checkbox" checked="checked" name="is_create"/>&nbsp;</span>&nbsp;
+													<label for="is_delete" class="control-label">删除:</label>
+													<span><input id="is_delete" type="checkbox" checked="checked" name="is_delete"/>&nbsp;</span>&nbsp;
+													<label for="is_modify" class="control-label">修改:</label>
+													<span><input id="is_modify" type="checkbox" checked="checked" name="is_modify"/>&nbsp;</span>&nbsp;
+
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
                                                 <label for="" class="col-sm-2 control-label">启用</label>
                                                 <div class="col-sm-10">
                                                     <ul class="pagination" style="margin:0px;">
-                                                        <li class="a_f active" value="true"><a href="#">启用</a></li>
-                                                        <li class="a_f " value="false"><a href="#">禁用</a></li>
+                                                        <li class="a_f active" value="true" id="status_0"><a href="#">启用</a></li>
+                                                        <li class="a_f " value="false" id="status_1"><a href="#">禁用</a></li>
                                                     </ul>
                                                     <input style="display:none;" type="text" name="is_active" id="id_is_active" class="form-control input-sm" value="true">
                                                     <p class="help-block"><li  class="glyphicon glyphicon-info-sign"></li>&nbsp;启用/禁用.</p>
                                                 </div>
                                             </div>
 
-                                            <input style="display:none;" type="text"  id="action" value="add">
-                                            <input style="display:none;"  type="text"  id="pk">
+                                            <input style="display:none;" type="text"  name="action" id="action" value="add">
+                                            <input style="display:none;"  type="text" name="pk"  id="pk">
 
                                             <div class="form-group">
                                                 <label for="" class="col-sm-2 control-label">备注</label>
@@ -147,7 +183,7 @@
                                             </div>
                                             <div class="form-group">
                                                 <div class="col-sm-offset-2 col-sm-10">
-                                                    <button type="submit" onclick="post_add()" class="btn btn-primary btn-sm"><li class="glyphicon glyphicon-plus"></li>&nbsp;确认</button>
+                                                    <button type="submit" id="sub" class="btn btn-primary btn-sm"><li class="glyphicon glyphicon-plus"></li>&nbsp;确认</button>
                                                 </div>
                                             </div>
                                     </form>
@@ -173,6 +209,7 @@
     <script type="text/javascript">
 
         $("#show_add_data").click(function(){
+			$('#showModal [name]').val("");
             $('#action').val('add')
             $('#showModal').modal('show')
         });
@@ -191,31 +228,19 @@
         });
 
 
-        function post_add(){
-            if(checkReturn()){
-                $.post('/user/user_index/', {
-                    pk:$('#pk').val(),
-                    username:$('#username').val(),
-                    password: $('#password').val(),
-                    first_name: $('#first_name').val(),
-                    department: $('#department').val(),
-                    email: $('#email').val(),
-                    mobile: $('#mobile').val(),
-                    id_is_active: $('#id_is_active').val(),
-                    comment: $('#comment').val(),
-                    action:$('#action').val()
-                }, function (e) {
-                    if (e != 'ok'){
-                        alert(e)
-                    }else{
-                        window.location.reload();
-                    }
-                });
-            }else{
-                alert('ff')
-                return false;
-            }
-        }
+         $("#sub").click(function(){
+                var data=$("#sub_data").Data();
+                console.log(data);
+                var url="/user/user_index/";
+                $.post(url,data,function(d){
+                if(d=="ok"){
+                  alert("成功!")
+                location.reload()
+                }else{
+                  alert(d);
+                }
+                }) 
+            });
 
         function show_md(pk){
             $('#action').val('md')
@@ -228,6 +253,21 @@
                 $.each(fields, function(n,value) {
                     $('#' + value).val(dataObj[0]['fields'][value])
                 });
+                var f=dataObj[0]["fields"];
+                var check=['is_create','is_delete','is_modify'];
+                $.each(check,function(n,v){
+                       if(f[v]=="1"){
+                         $("[name="+v+"]").removeAttr("checked");
+                       }
+                });
+                var status=dataObj[0]["fields"]["is_active"];
+             
+            $(".a_f").removeClass('active');
+               if(status){
+                    $("#status_0").addClass("active");
+               }else{
+                    $("#status_1").addClass("active");
+               }
                 $('#pk').val(dataObj[0]['pk'])
                 $('#showModal').modal('show')
             });

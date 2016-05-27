@@ -1,0 +1,163 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+    <div class="wrapper">
+        <header class="main-header">
+            <!-- 导航 -->
+            {% include "sysBase/navbar_custom_menu.html" %}
+        </header>
+        <!-- 左侧菜单  -->
+        {% include "sysBase/left_index.html" %}
+
+
+        <!-- 内容部分 -->
+        <div class="content-wrapper">
+            <!-- Content Header (Page header) -->
+            <section class="content-header">
+                <h1>
+                    批量上传播放地址
+                    <small>通过文件上传播放地址</small>
+                </h1>
+{#                <ol class="breadcrumb">#}
+{#                    <li><a href="#"><i class="fa fa-dashboard"></i> 主页</a></li>#}
+{#                    <li class="active">节目源</li>#}
+{#                </ol>#}
+            </section>
+
+            <!-- Main content -->
+            <section class="content">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="box">
+                            <div class="box-header">
+                                <div class="box-tools">
+                                    <div class="input-group">
+                                        <input type="text" id="search" name="table_search" class="form-control input-sm pull-right" style="width: 150px;" placeholder="Search"/>
+                                        <div class="input-group-btn">
+                                            <button class="btn btn-default btn-sm" onclick="search_name()"><i class="fa fa-search"></i>查询</button>
+{% ifequal request.user.userprofile.is_create "0" %}
+                                    		<td style="padding:5px 0px 5px 0px"><button data-toggle="modal" data-target="#show_upfile" data-placement="top" class="btn btn-primary btn-sm" id="showupfile" type="button"><li style="color:#ffffff;" class="glyphicon glyphicon-plus"></li>&nbsp;上传文件</button></td>
+{% endifequal %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <table class="table" style="width:200px; margin: 0px">
+                                <thead>
+                                </thead>
+                                <tbody>
+                                <tr>
+{% ifequal request.user.userprofile.is_delete "0" %}
+									<td style="padding:5px 0px 5px 5px"><button type="button" class="btn btn-default btn-sm" onclick="del_batch('/playlist/delfile')"><li class="glyphicon glyphicon-trash"></li>&nbsp;批量删除</button></td>
+{% else %}<td style="padding:5px 0px 5px 5px"><button type="button" class="btn btn-default btn-sm">&nbsp;批量管理</button></td>
+{% endifequal %}
+
+
+                                </tr>
+
+
+                                </tbody>
+                            </table>
+<div class="modal fade" id="show_upfile" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+ <div class="modal-dialog modal-dialog-center modal-sm">
+  <div class="modal-content">
+
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+		&nbsp;上传文件    
+	</div>
+
+	<div class="modal-body">
+	<table class="table" id="data_tb">  
+	<tr>  
+		<td><input type='file' name='upfile' id="ss"/></td>
+	</tr>
+	</table>
+	<button class="btn btn-info" type="submit" name="_create" id="sub">提交文件</button>
+	</div>
+
+	<div class="modal-footer">
+		copyright Joybig
+	</div>
+</div>
+</div>
+</div>
+                            <div class="table-responsive">
+                                <table class="table table-hover table-bordered">
+                                    <thead>
+                                    <tr>
+                                        <th style="text-align: center;vertical-align:middle;" width="45px"><input id="checkAll" type="checkbox" ></th>
+                                        <th>文件名</th>
+                                        <th>文件路径</th>
+                                        <th>上传时间</th>
+										<th>操作</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+
+                                    {% for node in object_result.object_list %}
+                                        <tr id="tr_id_{{ node.id }}">
+
+                                            <td style="text-align: center;vertical-align:middle;"><input id="inputCheckbox{{ node.id }}" type="checkbox" name="checkbox" value="{{ node.id }}" /></td>
+                                            <td><span class="badge">{{ node.filename }}</span></td>
+											<td>{{ node.filepath }}</td>
+                                            <td>{{ node.createtime }}</td>
+{% ifequal request.user.userprofile.is_delete "0" %}
+    										<td><a href="#" onclick="del_user('{{ node.id }}', '/playlist/delfile')"> <li title="删除" class="glyphicon glyphicon-trash"></li>
+{% endifequal %}
+                                        </tr>
+                                    {% endfor %}
+
+                                </table>
+                                {% include "sysBase/pagination.html" %}
+                            </div><!-- /.box-body -->
+                            <div style="height:15px;"></div>
+                        </div><!-- /.box -->
+                    </div><!-- /.col -->
+                </div><!-- /.row -->
+
+
+            </section><!-- /.content -->
+        </div><!-- /.content-wrapper -->
+
+        <!-- 工具条切换风格 -->
+        {% include "sysBase/sidebar.html" %}
+        <div class='control-sidebar-bg'></div>
+    </div><!-- ./wrapper -->
+
+
+{% endblock %}
+{% block js_append %}
+    <script type="text/javascript">
+//         alert(M.get("status"));
+
+         $("#sub").click(function(){
+            var data=$('#data_tb').Data();
+            sub(data);
+         });
+         function sub(param_data){
+            var url="/playlist/upfile";
+            $.ajaxFileUpload({
+		    url:url,
+			secureuri:false,
+			data:param_data,
+			fileElementId:'ss',
+            type:"post",
+			dataType:'text',
+			success:function(d){
+                if(d=="ok"){
+                  alert("上传成功!")
+                location.reload()
+                } else if(d=="uptype_wrong") {
+				  alert("请不要上传奇怪格式的文件!")
+				}else{
+                  alert("上传失败!");
+                }
+
+			}
+	       });
+        }
+
+    </script>
+{% endblock %}

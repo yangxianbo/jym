@@ -45,7 +45,10 @@
                                 </thead>
                                 <tbody>
                                 <tr>
-									<td style="padding:5px 0px 5px 5px"><button type="button" class="btn btn-default btn-sm" onclick="del_batch('/authorization/delauth')"><li class="glyphicon glyphicon-trash"></li>&nbsp;批量删除</button></td>
+{% ifequal request.user.userprofile.is_delete "0" %}
+									<td style="padding:5px 0px 5px 5px"><button type="button" class="btn btn-default btn-sm" onclick="del_batch('/authorization/delpreauth')"><li class="glyphicon glyphicon-trash"></li>&nbsp;批量删除</button></td>
+{% else %}<td style="padding:5px 0px 5px 5px"><button type="button" class="btn btn-default btn-sm">&nbsp;访问机器</button></td>
+{% endifequal %}
 
                                 </tr>
 
@@ -84,8 +87,12 @@
                                             {% endifequal %}
 
 											<td>
-												<a href="#" onclick="del_user('{{ node.id }}', '/authorization/delauth')"> <li title="删除" class="glyphicon glyphicon-trash"></li></a>&nbsp; 
-												<a id="show_add_data" appid={{ node.appid }} cpuid={{ node.cpuid }}> <li title="进行授权" class="glyphicon glyphicon-ok-circle" style="cursor:pointer"></li></a>&nbsp;
+{% ifequal request.user.userprofile.is_delete "0" %}
+												<a href="#" onclick="del_user('{{ node.id }}', '/authorization/delpreauth')"> <li title="删除" class="glyphicon glyphicon-trash"></li></a>&nbsp; 
+{% endifequal %}
+{% ifequal request.user.userprofile.is_modify "0" %}
+												<a  onclick="showAddData(this)" appid={{ node.appid }} cpuid={{ node.cpuid }} nodeid={{ node.id }}> <li title="进行授权" class="glyphicon glyphicon-ok-circle" style="cursor:pointer"></li></a>&nbsp;
+{% endifequal %}
 											</td>
                                         </tr>
                                     {% endfor %}
@@ -117,7 +124,7 @@
                                                 <div class="col-sm-10">
                                                     <input type="text" name="appid" id="appid" class="form-control input-sm"  style="width:100px;" check-type="required" disabled="disabled">
                                                     <p class="help-block"><li  class="glyphicon glyphicon-info-sign">给此APP关联列表</li>&nbsp;</p>
-                                                    <input type="text" value="{{ pid }}" name="pid" id="pid"  hidden="hidden">
+                                                    <input type="text" name="pid" id="pid"  hidden="hidden">
                                                     <input type="text" value="{{ mac }}" name="mac" id="mac"  hidden="hidden">
                                                     <input type="text" name="cpuid" id="cpuid"  hidden="hidden">
 
@@ -188,15 +195,16 @@
    
 		
 			});
-        $("#show_add_data").click(function(){
-			var appid=$(this).attr("appid");
-			var cpuid=$(this).attr("cpuid");
+        function showAddData(obj){
+			var pid=$(obj).attr("nodeid");			
+            var appid=$(obj).attr("appid");
+            var cpuid=$(obj).attr("cpuid");
             $('#action').val('add')
             $('#showModal [name=appid]').val(appid);
+            $('#showModal [name=pid]').val(pid);
             $('#showModal [name=cpuid]').val(cpuid);
             $('#showModal').modal('show')
-       
-        });
+        }
 
     </script>
 {% endblock %}

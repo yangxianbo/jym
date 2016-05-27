@@ -12,7 +12,7 @@ def Handle_upfile(f):
     try:
         filename=f.name
         exname=os.path.splitext(filename)[-1]
-        if exname != ".xls" and exname != ".xlsx":
+        if exname != ".xls" and exname != ".xlsx" and exname != ".apk" and exname != ".jpg" and exname != ".png" and exname != ".gif":
             return -2
         path = "./upfile/%s"%filename
         destination = open(path, 'wb+')

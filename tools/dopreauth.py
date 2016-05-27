@@ -36,7 +36,7 @@ class Dopreauth():
             return mkey
 
     def _create_auth(self,mkey):
-        e_time=stime_change_time(time_change_stime(self.localtime)+((int(self.autime)+*86400))
+        e_time=stime_change_time(time_change_stime(self.localtime)+(int(self.autime)*86400))
         new=authorization.objects.create(mac=mkey,
                                     appid=self.appid,
                                     playid=self.playid,
@@ -52,3 +52,8 @@ class Dopreauth():
         mkey=self._check_machine()
         self._create_auth(mkey)
         return 0
+
+
+
+preauth=Dopreauth('002157f3a022','ffffffff-d4bd-1afb-3ba9-893c0033c587','1','1','1879607f634cb19c1c87aee8404e5652d7c05408ee8e209a6cd896c0a831076137c6f7d917a8adb734b00e820110dab82a0ae2be24749ffd88cf27422ced60a0','11')
+print preauth.main()

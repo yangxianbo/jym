@@ -526,7 +526,12 @@
 		     var type=obj[i].type;
 			 switch (type){
 			   case "checkbox":
-			   data[obj[i].name]=[];
+			   //data[obj[i].name]=[];
+			     if( $(obj[i]).is(':checked')){
+					 data[obj[i].name]="true";
+				 }else{
+					 data[obj[i].name]="false";
+				 }
 			   break;
 			   case "radio":
 			   if(obj[i].checked==true){
@@ -540,14 +545,14 @@
 			 }
 				
 		  }
-		  var checked=$(this[0]).find("input:checked");
+		/*  var checked=$(this[0]).find("input:checked");
 		  if(checked.length>0){
 		    
 		    for(i=0;i<checked.length;i++){
 			   var name=checked[i].name;
-               data[name][i]=checked[i].value;
+               data[name]=true;
 			}
-		  }
+		  }*/
 		  return data;
 	   }
 	})

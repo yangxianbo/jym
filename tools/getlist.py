@@ -17,23 +17,23 @@ def Getlist(mac,cpuid,appid,aucode,ip,localtime):
     if check_status == 0:
         play_dict={"live":[],"vod":[]}
         groupid=str(authorization.objects.get(mac__mac=mac,appid=appid).playid)
+        groupquery=playgroup.objects.get(groupid=groupid)
+        livegroupid=groupquery.livegroupid
+        vodgroupid=groupquery.vodgroupid
         #查询直播列表
-        classquery=liveplaylist.objects.filter(groupid=groupid).values('classname').distinct()
-        if len(classquery) != 0:
-            for classname in classquery:
-                class_dict={'classname':classname['classname'],'playlist':[]}
-                listquery=liveplaylist.objects.filter(groupid=groupid,classname=classname['classname']).values()
-                for playinfo in listquery:
-                    live_base={}
-                    live_base['name']=playinfo['playname']
-                    live_base['id']=playinfo['playid']
-                    live_base['address']=playinfo['playaddress']
-                    class_dict['playlist'].append(live_base)
-                play_dict['live'].append(class_dict)
-            return play_dict
+        live_group_query=liveplaygroup.objects.get(livegroupid=livegroupid)
+        playidlist=live_group_query.liverelate_id.split(',')
+        classall=liveplaylist.objects.filter(id__in=playidlist).values_list('classname').distinct()
+        for classname in classall:
+            class_dict={'classname':classname[0],'playlist':[]}
+            liveall=liveplaylist.objects.filter(id__in=playidlist,classname=classname[0])
+            for live in liveall:
+                live_base={'address':live['playaddress'],'status':live['mstatus'],'pic':live['picurl'],'name':live['playname'],'id':live['channelid']}
+                class_dict['playlist'].append(live_base)
+            play_dict['live'].append(class_dict)
         #查询点播列表
-        else:
-            return play_dict
+        return play_dict
     else:
-        return check_status
+        play_dict={'code':check_status}
+        return play_dict
                 

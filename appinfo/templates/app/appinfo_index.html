@@ -1,0 +1,378 @@
+{% extends "base/base.html" %}
+{% load app_templatetags %}
+{% block content %}
+    <div class="wrapper">
+        <header class="main-header">
+            <!-- 导航 -->
+            {% include "sysBase/navbar_custom_menu.html" %}
+        </header>
+        <!-- 左侧菜单  -->
+        {% include "sysBase/left_index.html" %}
+
+
+        <!-- 内容部分 -->
+        <div class="content-wrapper">
+            <!-- Content Header (Page header) -->
+            <section class="content-header">
+                <h1>
+                    APP管理
+                    <small>上传更新包</small>
+                </h1>
+{#                <ol class="breadcrumb">#}
+{#                    <li><a href="#"><i class="fa fa-dashboard"></i> 主页</a></li>#}
+{#                    <li class="active">节目源</li>#}
+{#                </ol>#}
+            </section>
+
+            <!-- Main content -->
+            <section class="content">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="box">
+                            <div class="box-header">
+                                <div class="box-tools">
+                                    <div class="input-group">
+                                        <input type="text" id="search" name="table_search" class="form-control input-sm pull-right" style="width: 150px;" placeholder="Search"/>
+                                        <div class="input-group-btn">
+                                            <button class="btn btn-default btn-sm" onclick="search_name()"><i class="fa fa-search"></i>查询</button>
+{% ifequal request.user.userprofile.is_create "0" %}
+											<button class="btn btn-primary btn-sm" id="show_add_data" type="button"><li style="color:#ffffff;" class="glyphicon glyphicon-plus"></li>&nbsp;新增APP信息</button>
+{% endifequal %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <table class="table" style="width:200px; margin: 0px">
+                                <thead>
+                                </thead>
+                                <tbody>
+                                <tr>
+{% ifequal request.user.userprofile.is_delete "0" %}
+									<td style="padding:5px 0px 5px 5px"><button type="button" class="btn btn-default btn-sm" onclick="del_batch('/app/delapk')"><li class="glyphicon glyphicon-trash"></li>&nbsp;批量删除</button></td>
+{% else %}
+									<td style="padding:5px 0px 5px 5px"><button type="button" class="btn btn-default btn-sm">&nbsp;APP管理</button></td>
+{% endifequal %}
+
+{% ifequal request.user.userprofile.is_modify "0" %}
+									<td style="padding:5px 0px 5px 5px"><button type="button" class="btn btn-default btn-sm" onclick="force_batch('/app/forceapk')"><li class="glyphicon glyphicon-check"></li>&nbsp;批量设置强制更新</button></td>
+									<td style="padding:5px 0px 5px 5px"><button type="button" class="btn btn-default btn-sm" onclick="normal_batch('/app/normalapk')"><li class="glyphicon glyphicon-ok"></li>&nbsp;批量设置普通更新</button></td>
+{% endifequal %}
+
+                                </tr>
+
+
+                                </tbody>
+                            </table>
+                            <div class="table-responsive">
+                                <table class="table table-hover table-bordered">
+                                    <thead>
+                                    <tr>
+                                        <th style="text-align: center;vertical-align:middle;" width="45px"><input id="checkAll" type="checkbox" ></th>
+                                        <th>APPID</th>
+                                        <th>APP名称</th>
+										<th>包名</th>
+										<th>版本</th>
+										<th>大小</th>
+										<th>描述</th>
+										<th>上传时间</th>
+										<th>下载地址</th>
+										<th>更新类型</th>
+										<th>跑马灯内容</th>
+										<th>操作</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+
+                                    {% for node in object_result.object_list %}
+                                        <tr id="tr_id_{{ node.id }}">
+
+                                            <td style="text-align: center;vertical-align:middle;"><input id="inputCheckbox{{ node.id }}" type="checkbox" name="checkbox" value="{{ node.id }}" /></td>
+                                            <td><span class="badge">{{ node.appid }}</span></td>
+                                            <td>{{ node.appname }}</td>
+                                            <td>{{ node.appfolder }}</td>
+                                            <td>{{ node.version }}</td>
+                                            <td>{{ node.appsize }}</td>
+                                            <td>{{ node.appdesc }}</td>
+                                            <td>{{ node.uptime }}</td>
+                                            <td>{{ node.downloadurl }}</td>
+											{% ifequal node.upstate '1' %}
+                                            <td>普通更新</td>
+											{% else %}
+                                            <td>强制更新</td>
+											{% endifequal %}
+                                            <td>{{ node.ticker|cut|safe }}</td>
+											<td>
+{% ifequal request.user.userprofile.is_delete "0" %}
+												<a href="#" onclick="del_user('{{ node.id }}', '/app/delapk')"> <li title="删除" class="glyphicon glyphicon-trash"></li></a>&nbsp; 
+{% endifequal %}
+{% ifequal request.user.userprofile.is_modify "0" %}
+												<a onclick="show_md('{{ node.id }}')"> <li title="修改" class="glyphicon glyphicon-cog" style="cursor:pointer"></li></a>&nbsp;
+												<a data-toggle="modal" onclick="checkflag('upapp','{{ node.id }}','{{ node.appname}}')" data-target="#show_upfile" class="glyphicon glyphicon-circle-arrow-up" title="上传APK"></a>&nbsp;
+{% endifequal %}
+											</td>
+                                        </tr>
+                                    {% endfor %}
+
+                                </table>
+<div class="modal fade" id="show_upfile" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+ <div class="modal-dialog modal-dialog-center modal-sm">
+  <div class="modal-content">
+
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        &nbsp;<span id="appname2"> 上传文件</span>
+    </div>
+            <input type="hidden" name="flag" id="upflag"> 
+    <div class="modal-body">
+    <table class="table" id="data_tb">
+    <tr>
+        <td><input type='file' name='upfile' id="ss"/></td>
+    </tr>
+    </table>
+    <button class="btn btn-info" type="submit" name="_create" id="sub">提交文件</button>
+    </div>
+
+    <div class="modal-footer">
+        copyright Joybig
+    </div>
+</div>
+</div>
+</div>
+                                {% include "sysBase/pagination.html" %}
+                            </div><!-- /.box-body -->
+                            <div style="height:15px;"></div>
+                        </div><!-- /.box -->
+                    </div><!-- /.col -->
+                </div><!-- /.row -->
+
+
+            </section><!-- /.content -->
+<div class="modal" id="showModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog" >
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title" id="exampleModalLabel">APP管理</h4>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col-md-12 box box-success">
+                                    <form id="data_tb2" class="form-horizontal highlight" role="form"  style="width:800px; margin-top: 10px;"  onsubmit="return false">
+
+                                            <div class="form-group">
+                     							<label for="" class="col-sm-2 control-label">APPID</label>
+                                                <div class="col-sm-10">
+                                                    <input type="text" name="appid" id="appid" class="form-control input-sm"  style="width:100px;" check-type="required" required-message="请填写APPID。">
+                                                    <p class="help-block"><li  class="glyphicon glyphicon-info-sign"></li>&nbsp;APPID必须唯一!</p>
+
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="" class="col-sm-2 control-label">APP名称</label>
+                                                <div class="col-sm-10">
+                                                    <input type="text" name="appname" id="appname" class="form-control input-sm"  placeholder="APP名称" style="width:300px;" check-type="required">
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="" class="col-sm-2 control-label">跑马灯</label>
+                                                <div class="col-sm-10">
+                                                    <input type="text" name="ticker" id="ticker" class="form-control input-sm"  placeholder="跑马灯" style="width:300px;" check-type="required">
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="" class="col-sm-2 control-label">更新类型</label>
+                                                <div class="col-sm-10">
+                                                   <select  name="upstate" id="upstate" style="height:34px;width:200px">
+                                                     <option value="1">普通更新</option>
+                                                     <option value="2">强制更新</option>
+                                                   </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="" class="col-sm-2 control-label">APP包名</label>
+                                                <div class="col-sm-10">
+                                                    <input type="text" name="appfolder" id="appfolder" class="form-control input-sm"  style="width:200px;" check-type="required" disabled="true ">
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="" class="col-sm-2 control-label">上传时间</label>
+                                                <div class="col-sm-10">
+                                                    <input type="text" name="uptime" id="uptime" class="form-control input-sm" check-type="number"  style="width:200px;" disabled="true ">
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="" class="col-sm-2 control-label">描述</label>
+                                                <div class="col-sm-10">
+                                                    <input type="text" name="appdesc" id="appdesc" class="form-control input-sm" check-type="number"  style="width:200px;">
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="" class="col-sm-2 control-label">版本号</label>
+                                                <div class="col-sm-10">
+                                                    <input type="text" name="version" id="version" class="form-control input-sm" check-type="number"  style="width:200px;" disabled="true ">
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="" class="col-sm-2 control-label">下载地址</label>
+                                                <div class="col-sm-10">
+                                                    <input type="text" name="downloadurl" id="downloadurl" class="form-control input-sm" check-type="number"  style="width:200px;" disabled="true ">
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="" class="col-sm-2 control-label">大小</label>
+                                                <div class="col-sm-10">
+                                                    <input type="text" name="appsize" id="appsize" class="form-control input-sm" check-type="number"  style="width:200px;" disabled="true ">
+                                                </div>
+                                            </div>
+                                            <input style="display:none;" type="text"  name="action" id="action" value="add">
+											<input style="display:none;"  type="text" name="pk" id="pk">
+
+                                            <div class="form-group">
+                                                <div class="col-sm-offset-2 col-sm-10">
+                                                    <button type="submit" id="sub2" class="btn btn-primary btn-sm"><li class="glyphicon glyphicon-plus"></li>&nbsp;确认</button>
+                                                </div>
+                                            </div>
+                                    </form>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div><!-- /.content-wrapper -->
+
+        <!-- 工具条切换风格 -->
+        {% include "sysBase/sidebar.html" %}
+        <div class='control-sidebar-bg'></div>
+    </div><!-- ./wrapper -->
+
+
+{% endblock %}
+{% block js_append %}
+    <script type="text/javascript">
+//         alert(M.get("status"));
+         
+
+         var flag;
+         var appid;
+         var appname;
+         $("#sub2").click(function(){
+             	var data=$("#data_tb2").Data();
+ 				var url="/app/appindex/";
+ 				$.post(url,data,function(d){
+                if(d=="ok"){
+                  alert("成功!")
+                location.reload()
+				}else{
+                  alert(d);
+                }
+                })    
+		
+			});
+         function checkflag(str,id,appname){
+              flag=str;
+              pk=id;
+              appname=appname;
+              var change={
+                 upapp:"上传APK",
+                 uplogo:"上传广告图片",
+                 uppic:"上传详细图",
+              }
+                $("#appname2").html(appname+"_"+change[flag]);
+         }
+         $("#sub").click(function(){
+            var data=$('#data_tb').Data();
+            data.flag=flag;
+            data.pk=pk;
+            sub(data);
+         });
+         function sub(param_data){
+            var url="/app/upapk";
+            $.ajaxFileUpload({
+		    url:url,
+			secureuri:false,
+			data:param_data,
+			fileElementId:'ss',
+            type:"post",
+			dataType:'text',
+			success:function(d){
+                if(d=="ok"){
+                  alert("成功!")
+                location.reload()
+				}else{
+                  alert(d);
+                }
+
+			}
+	       });
+        }
+        $("#show_add_data").click(function(){
+            $('#showModal [name]').val("");
+            $('#action').val('add')
+            $('#showModal').modal('show')
+        });
+        function show_md(pk){
+            $('#action').val('md')
+            $.post('/app/show_app_data/', {
+                pk:pk,
+				table:'appinfo'
+            }, function (e) {
+                var dataObj=eval("("+e+")");
+                var fields = ['appid','appfolder','appname','uptime','appdesc','version','downloadurl','appsize','ticker'];
+                $.each(fields, function(n,value) {
+                    $('#' + value).val(dataObj[0]['fields'][value])
+                });
+                $("#upstate option[value="+dataObj[0]['fields']['upstate']+"]").attr("selected","true");
+				$('#pk').val(dataObj[0]['pk'])
+                $('#showModal').modal('show')
+            });
+        }
+
+		function force_batch(url){
+			if (!confirm("确认要设置为强制更新？")) {
+				return false;
+			}
+
+			var chk_value = [];
+			$("input[id*='inputCheckbox']:checked").each(function () {
+				chk_value.push($(this).val())
+			});
+			if (chk_value.length != 0) {
+				$.post(url, {
+					pk: chk_value.join(",")
+				}, function (e) {
+					if (e == 'ok') {
+						window.location.reload();
+					} else {
+						alert(e)
+					}
+				});
+			}
+		}
+
+		function normal_batch(url){
+			if (!confirm("确认要设置为普通更新？")) {
+				return false;
+			}
+
+			var chk_value = [];
+			$("input[id*='inputCheckbox']:checked").each(function () {
+				chk_value.push($(this).val())
+			});
+			if (chk_value.length != 0) {
+				$.post(url, {
+					pk: chk_value.join(",")
+				}, function (e) {
+					if (e == 'ok') {
+						window.location.reload();
+					} else {
+						alert(e)
+					}
+				});
+			}
+		}
+
+    </script>
+{% endblock %}

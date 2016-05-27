@@ -35,7 +35,9 @@
                                         <input type="text" id="search" name="table_search" class="form-control input-sm pull-right" style="width: 150px;" placeholder="Search"/>
                                         <div class="input-group-btn">
                                             <button class="btn btn-default btn-sm" onclick="search_name()"><i class="fa fa-search"></i>查询</button>
+{% ifequal request.user.userprofile.is_create "0" %}
                                     		<td style="padding:5px 0px 5px 0px"><button data-toggle="modal" data-target="#add_group" data-placement="top" class="btn btn-primary btn-sm" id="addgroup" type="button"><li style="color:#ffffff;" class="glyphicon glyphicon-plus"></li>&nbsp;新增机器</button></td>
+{% endifequal %}
                                         </div>
                                     </div>
                                 </div>
@@ -61,7 +63,10 @@
                                             </ul>
                                         </div>
                                     </td>
+{% ifequal request.user.userprofile.is_delete "0" %}
 									<td style="padding:5px 0px 5px 5px"><button type="button" class="btn btn-default btn-sm" onclick="del_batch('/authorization/delmachine')"><li class="glyphicon glyphicon-trash"></li>&nbsp;批量删除</button></td>
+{% else %}<td style="padding:5px 0px 5px 5px"><button type="button" class="btn btn-default btn-sm">&nbsp;机器管理</button></td>
+{% endifequal %}
                                 </tr>
 
                                 </tbody>
@@ -95,6 +100,10 @@
 		<td>CPUID:</td>
 		<td><input type='text' name='cpuid' /></td>
 	</tr>
+	<tr>  
+		<td>区域限制:</td>
+		<td><input type='text' name='blacklocation' /></td>
+	</tr>
 	</table>
 	<button class="btn btn-info" type="submit" id="sub">新增</button>
 	</div>
@@ -114,6 +123,7 @@
                                         <th>数字码</th>
                                         <th>CPUID</th>
                                         <th>代理商</th>
+                                        <th>区域限制</th>
 										<th>操作</th>
                                     </tr>
                                     </thead>
@@ -129,6 +139,7 @@
 											<td>{{ node.macnum }}</td>
 											<td>{{ node.cpuid }}</td>
 											<td>{{ node.agency }}</td>
+											<td>{{ node.blacklocation }}</td>
     										<td>
 <div class="modal fade" id="update_relate_{{ node.id }}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
  <div class="modal-dialog modal-dialog-center modal-sm">
@@ -164,6 +175,10 @@
 		<td>CPUID:</td>
 		<td><input type='text' value="{{ node.cpuid }}" name='cpuid' /></td>
 	</tr>
+	<tr>  
+		<td>区域限制:</td>
+		<td><input type='text' value="{{ node.blacklocation }}" name='blacklocation' /></td>
+	</tr>
 	</table>
 	<button class="btn btn-info" type="submit" id="update_sub_{{ node.id }}">修改</button>
     <script type="text/javascript">
@@ -171,7 +186,7 @@
                     var data=$('#update_tb_{{ node.id }}').Data();
                     $.post("/authorization/updatemachine",data,function(e){
                     if (e == 'ok') {
-                        alert("修改套餐成功！")
+                        alert("修改机器成功！")
                         window.location.reload();
                     } else {
                         alert(e)
@@ -187,7 +202,12 @@
 </div>
 </div>
 </div>
-											  <a href="#" onclick="del_user('{{ node.id }}', '/authorization/delmachine')" > <li title="删除" class="glyphicon glyphicon-trash"></li></a>&nbsp; <a data-toggle="modal" data-target="#update_relate_{{ node.id }}" style="cursor:pointer" onclick="initView('{{ node.pk }}','{{node.agency}}')"> <li class="glyphicon glyphicon-cog"  title="修改" ></li></a>
+{% ifequal request.user.userprofile.is_delete "0" %}
+											  <a href="#" onclick="del_user('{{ node.id }}', '/authorization/delmachine')" > <li title="删除" class="glyphicon glyphicon-trash"></li></a>&nbsp;
+{% endifequal %}
+{% ifequal request.user.userprofile.is_modify "0" %}
+											   <a data-toggle="modal" data-target="#update_relate_{{ node.id }}" style="cursor:pointer" onclick="initView('{{ node.pk }}','{{node.agency}}')"> <li class="glyphicon glyphicon-cog"  title="修改" ></li></a>
+{% endifequal %}
 											</td>
                                         </tr>
                                     {% endfor %}
