@@ -27,6 +27,7 @@
 					<li {% if '/authorization/machineindex/' == request.path  %}class="active"{% endif  %}><a href="/authorization/machineindex/"><i class="fa fa-angle-double-right"></i> 机器信息</a></li>
 					<li {% if '/authorization/groupindex/' == request.path  %}class="active"{% endif  %}><a href="/authorization/groupindex/"><i class="fa fa-angle-double-right"></i> 代理商组管理</a></li>
 					<li {% if '/authorization/tickerindex/' == request.path  %}class="active"{% endif  %}><a href="/authorization/tickerindex/"><i class="fa fa-angle-double-right"></i> 跑马灯管理</a></li>
+					<li {% if '/authorization/pubmsg/' == request.path  %}class="active"{% endif  %}><a href="/authorization/pubmsg/"><i class="fa fa-angle-double-right"></i> 公开消息管理</a></li>
 					<li {% if '/authorization/managenew/' == request.path  %}class="active"{% endif  %}><a href="/authorization/managenew/"><i class="fa fa-angle-double-right"></i> 预授权管理</a></li>
 				</ul>
 			</li>
@@ -47,7 +48,6 @@
 				</a>
 				<ul class="treeview-menu">
 					<li {% if '/playlist/uplist/' == request.path  %}class="active"{% endif  %}><a href="/playlist/uplist/"><i class="fa fa-angle-double-right"></i> 上传列表</a></li>
-					<li {% if '/playlist/groupindex/' == request.path  %}class="active"{% endif  %}><a href="/playlist/groupindex/"><i class="fa fa-angle-double-right"></i> 列表组管理</a></li>
 					<li {% if '/playlist/livegroupindex/' == request.path  %}class="active"{% endif  %}><a href="/playlist/livegroupindex/"><i class="fa fa-angle-double-right"></i> 直播组管理</a></li>
 					<li {% if '/playlist/liveindex/' == request.path  %}class="active"{% endif  %}><a href="/playlist/liveindex/"><i class="fa fa-angle-double-right"></i> 直播频道管理</a></li>
 				</ul>

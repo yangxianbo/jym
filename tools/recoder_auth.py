@@ -44,8 +44,9 @@ class Recoder_auth():
             relate_list=pkey.package_relate_app.all()
             for per in relate_list:
                 appid=per.appid
-                playid=per.playid
-                perlist=[appid,playid,autime,s_time,e_time]
+                liveplayid=per.liveplayid
+                vodplayid=per.vodplayid
+                perlist=[appid,liveplayid,vodplayid,autime,s_time,e_time]
                 return_list.append(perlist)
             return return_list
         except package.DoesNotExist:
@@ -58,11 +59,11 @@ class Recoder_auth():
             gkey=group_info.objects.create(groupname=groupname)
             gkey.save()
 
-    def _addauth(self,mkey,appid,aucode,s_time,autime,e_time,playid):
+    def _addauth(self,mkey,appid,aucode,s_time,autime,e_time,liveplayid,vodplayid):
         try:
             akey=authorization.objects.filter(mac=mkey,appid=appid)
             if len(akey) == 0:
-                akey=authorization.objects.create(mac=mkey,appid=appid,aucode=aucode,s_time=s_time,autime=autime,e_time=e_time,playid=playid,austate=0)
+                akey=authorization.objects.create(mac=mkey,appid=appid,aucode=aucode,s_time=s_time,autime=autime,e_time=e_time,liveplayid=liveplayid,vodplayid=vodplayid,austate=0)
                 akey.save()
                 return 0
             else:
@@ -70,7 +71,7 @@ class Recoder_auth():
                 base_stime=akey[0].s_time
                 update_autime=int(base_autime)+int(autime)
                 update_etime=stime_change_time(time_change_stime(base_stime)+((int(autime)+int(base_autime))*86400))
-                akey.update(aucode=aucode,autime=update_autime,e_time=update_etime,playid=playid,austate=0)
+                akey.update(aucode=aucode,autime=update_autime,e_time=update_etime,liveplayid=liveplayid,vodplayid=vodplayid,austate=0)
                 return 0
         except Exception,e:
             return -1
@@ -78,7 +79,8 @@ class Recoder_auth():
     def _add_motion(self,relate,mac,cpuid,groupname):
         #获得授权码
         appid=relate[0]
-        playid=relate[1]
+        liveplayid=relate[1]
+        vodplayid=relate[1]
         autime=relate[2]
         s_time=relate[3]
         e_time=relate[4]
@@ -87,7 +89,7 @@ class Recoder_auth():
         aucode=encrypt.main()
         #执行授权
         mkey=self._checkmac(mac,cpuid,groupname)
-        self._addauth(mkey,appid,aucode,s_time,autime,e_time,playid)
+        self._addauth(mkey,appid,aucode,s_time,autime,e_time,liveplayid,vodplayid)
 
     def _del_motion(self,mac):
         try:

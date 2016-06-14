@@ -39,65 +39,18 @@ def get_playlist(request):
         raise Http404
 
 @login_required()
-def group_index(request, template_name):
-    queryset=playgroup.objects.all()
-    livegroup=liveplaygroup.objects.all()
-    search_fields = ['groupid']
-    return get_datatables_records(
-        request,
-        queryset,
-        search_fields,
-        template_name,
-        extra_context={
-            'livegroup':livegroup,
-        })
-
-@login_required()
-def add_group(request):
-    try:
-        groupid=request.POST['groupid']
-        livegroupid=request.POST['livegroupid']
-        vodgroupid=request.POST['vodgroupid']
-        if len(playgroup.objects.filter(groupid=groupid)) == 0:
-            add=playgroup.objects.create(groupid=groupid,livegroupid=livegroupid,vodgroupid=vodgroupid)
-            add.save()
-            return HttpResponse('ok')
-        else:
-            return HttpResponse('已存在相同组ID')
-    except Exception,e:
-        return HttpResponse(e)
-
-@login_required()
-def update_group(request):
-    pk=request.POST['pid']
-    groupid=request.POST['groupid']
-    livegroupid=request.POST['livegroupid']
-    vodgroupid=request.POST['vodgroupid']
-    playgroup.objects.filter(pk=pk,groupid=groupid).update(livegroupid=livegroupid,vodgroupid=vodgroupid)
-    return HttpResponse('ok')
-
-@login_required()
-def del_group(request):
-    ''' 删除关联'''
-    pk=request.POST['pk']
-    tids = [ int(i) for i in pk.split(',') ]
-    if len(tids) > 0:
-        playgroup.objects.filter(id__in=tids).delete()
-    return HttpResponse('ok')
-
-@login_required()
 def up_logo(request):
     if request.POST:
-        localtime=UnixTime()
         f=request.FILES['upfile']
         opera=request.POST['flag']
         pid=request.POST['pk']
+        cid=request.POST['channelid']
         prefix=os.path.splitext(f.name)[-1]
         if (prefix == ".jpg" or prefix == ".gif" or prefix == ".png") and opera == "uplogo":
             upstate=Handle_upfile(f)
             if upstate != -1 and upstate != -2:
                 logourl="http://appstoreapi.tvdfe.com:8090/%s"%os.path.basename(upstate)
-                playgroup.objects.filter(id=pid).update(logourl=logourl)
+                liveplaygroup_adv.objects.filter(livegroupid_id=pid,channelid=cid).update(advurl=logourl)
                 return HttpResponse('ok')
             else:
                 return HttpResponse('无效操作')
@@ -139,7 +92,20 @@ def update_livegroup(request):
     livegroupname=request.POST['livegroupname']
     livegroupdesc=request.POST['livegroupdesc']
     liverelate_id=request.POST['liverelate_id']
+    cid_list=liverelate_id.split(',')
     liveplaygroup.objects.filter(pk=pk,livegroupid=livegroupid).update(livegroupname=livegroupname,livegroupdesc=livegroupdesc,liverelate_id=liverelate_id)
+    for cid in cid_list:
+        if len(liveplaygroup_adv.objects.filter(livegroupid_id=pk,channelid=cid)) == 0:
+            newadv=liveplaygroup_adv.objects.create(livegroupid_id=pk,channelid=cid)
+            newadv.save()
+        else:
+            pass
+    origin_list=liveplaygroup_adv.objects.filter(livegroupid_id=pk).values_list('channelid')
+    ocid_list=[]
+    for ocid in origin_list:
+        ocid_list.append(ocid[0])
+    diff_list=list(set(ocid_list).difference(set(cid_list)))
+    liveplaygroup_adv.objects.filter(livegroupid_id=pk,channelid__in=diff_list).delete()
     return HttpResponse('ok')
 
 @login_required()
@@ -244,8 +210,27 @@ def relate_live(request):
     ''' 关联直播组'''
     gpk=request.POST['livegroupid']
     pk=request.POST['pk'].strip(',')
-    liveplaygroup.objects.filter(pk=gpk).update(liverelate_id=pk)
-    return HttpResponse('ok')
+    relate_list=liveplaygroup.objects.filter(pk=gpk).values_list('liverelate_id')[0][0]
+    cid_list=pk.split(',')
+    union_list=list(set(cid_list).union(set(relate_list)))
+    if len(list(set(cid_list).difference(set(relate_list)))) != 0:
+        union_str=','.join(union_list).strip(',')
+        liveplaygroup.objects.filter(pk=gpk).update(liverelate_id=union_str)
+        for cid in cid_list:
+            if len(liveplaygroup_adv.objects.filter(livegroupid_id=gpk,channelid=cid)) == 0:
+                newadv=liveplaygroup_adv.objects.create(livegroupid_id=gpk,channelid=cid)
+                newadv.save()
+            else:
+                pass
+        origin_list=liveplaygroup_adv.objects.filter(livegroupid_id=gpk).values_list('channelid')
+        ocid_list=[]
+        for ocid in origin_list:
+            ocid_list.append(ocid[0])
+        diff_list=list(set(ocid_list).difference(set(union_list)))
+        liveplaygroup_adv.objects.filter(livegroupid_id=gpk,channelid__in=diff_list).delete()
+        return HttpResponse('ok')
+    else:
+        return HttpResponse('ok')
 
 @login_required()
 def file_index(request, template_name):
@@ -286,4 +271,53 @@ def del_file(request):
         for filename in filedelete:
             os.system('rm -f %s'%filename[0])
         upload_file.objects.filter(pk__in=tids).delete()
+    return HttpResponse('ok')
+
+@login_required()
+def live_adv(request, template_name):
+    _pid = request.REQUEST.get('pk', "0")
+    if _pid != "0":
+        pkey=liveplaygroup.objects.get(pk=_pid)
+        channel_list=pkey.liverelate_id.split(',')
+        c_dict={}
+        for channelid in channel_list:
+            pname=liveplaylist.objects.get(id=channelid).playname
+            c_dict[channelid]=pname
+        queryset=liveplaygroup_adv.objects.filter(livegroupid=pkey)
+    search_fields = []
+    return get_datatables_records(
+        request,
+        queryset,
+        search_fields,
+        template_name,
+        extra_context={
+            'livegroupname':pkey.livegroupname,
+            'pid':_pid,
+            'relate':json.dumps(c_dict),
+        })
+
+@login_required()
+def update_liveadv(request):
+    if request.POST:
+        advurl=request.POST['advurl']
+        pid=request.POST['pid']
+        cid=request.POST['cid']
+        liveplaygroup_adv.objects.filter(livegroupid_id=pid,channelid=cid).update(advurl=advurl)
+        return HttpResponse('ok')
+
+@login_required()
+def up_adv(request):
+    pk=request.POST['pk']
+    tids = [ int(i) for i in pk.split(',') ]
+    print tids
+    if len(tids) > 0:
+        liveplaygroup_adv.objects.filter(id__in=tids).update(advstate=0)
+    return HttpResponse('ok')
+
+@login_required()
+def dis_adv(request):
+    pk=request.POST['pk']
+    tids = [ int(i) for i in pk.split(',') ]
+    if len(tids) > 0:
+        liveplaygroup_adv.objects.filter(id__in=tids).update(advstate=1)
     return HttpResponse('ok')

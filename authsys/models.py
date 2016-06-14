@@ -30,7 +30,8 @@ class package(models.Model):
 class package_relateapp(models.Model):
     packageid=models.ForeignKey(package, related_name='package_relate_app')
     appid=models.CharField('APPID',max_length=20,null=True,blank=True)
-    playid=models.CharField('关联列表',max_length=255,null=True,blank=True)
+    liveplayid=models.CharField('关联直播列表',max_length=255,null=True,blank=True)
+    vodplayid=models.CharField('关联点播列表',max_length=255,null=True,blank=True)
 
 class machine_info(models.Model):
     agency=models.CharField('代理商',max_length=255,default="baseagency")
@@ -49,7 +50,8 @@ class authorization(models.Model):
     autime=models.CharField('授权时长',max_length=50,null=True,blank=True)
     e_time=models.CharField('授权结束时间',max_length=255,null=True,blank=True)
     austate=models.CharField('授权状态',max_length=20,default=1)
-    playid=models.CharField('关联列表',max_length=255,null=True,blank=True)
+    liveplayid=models.CharField('关联直播列表',max_length=255,null=True,blank=True)
+    vodplayid=models.CharField('关联点播列表',max_length=255,null=True,blank=True)
     dostate=models.CharField('鉴权状态',max_length=20,default=1)
     dotime=models.CharField('鉴权时间',max_length=255,default="2016-04-01 00:00:00")
     spare=models.CharField('备用字段',max_length=255,null=True,blank=True)
@@ -84,3 +86,8 @@ class accesslog(models.Model):
     spare=models.CharField('备用字段',max_length=255,null=True,blank=True)
     def __unicode__(self):
         return self.aucode
+
+class pub_msg(models.Model):
+    successmsg=models.CharField('成功信息',max_length=255,default="null")
+    errormsg=models.CharField('失败信息',max_length=255,default="null")
+    timemsg=models.CharField('超时信息',max_length=255,default="null")

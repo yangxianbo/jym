@@ -8,17 +8,17 @@ class upload_file(models.Model):
     filepath=models.CharField('文件路径',max_length=255,null=True,blank=True)
     createtime=models.CharField('文件上传时间',max_length=255,null=True,blank=True)
 
-class playgroup(models.Model):
-    groupid=models.CharField('播放组ID',max_length=20,unique=True)
-    livegroupid=models.CharField('直播播放组ID',max_length=20,null=True,blank=True)
-    vodgroupid=models.CharField('点播播放组ID',max_length=20,null=True,blank=True)
-    logourl=models.CharField('广告地址',max_length=255,default="")
-
 class liveplaygroup(models.Model):
     livegroupname=models.CharField('播放组名称',max_length=50,null=True,blank=True)
     livegroupid=models.CharField('播放组ID',max_length=20,unique=True)
     livegroupdesc=models.CharField('播放组描述',max_length=255,null=True,blank=True)
     liverelate_id=models.TextField('关联的节目ID',max_length=1000,default="")
+
+class liveplaygroup_adv(models.Model):
+    livegroupid=models.ForeignKey(liveplaygroup, related_name='live_adv')
+    channelid=models.CharField('频道ID',max_length=20,null=True,blank=True)
+    advurl=models.CharField('广告图片下载地址',max_length=255,default="")
+    advstate=models.CharField('启用状态',max_length=20,default=1)
 
 class liveplaylist(models.Model):
     channelid=models.CharField('频道ID',max_length=20,null=True,blank=True)

@@ -6,13 +6,13 @@
 #DESCRIPTION: 
 #===============================================================
 import base
-from authsys.models import authorization,accesslog
+from authsys.models import authorization,accesslog,machine_info
 from tools.aucode import Aucode
 
 def check_location(ip):
     from django.db import connection
     cursor = connection.cursor()
-    cursor.execute('select location from iplocation where ip_end > inet_aton(%s) limit 1'%ip)
+    cursor.execute('select location from iplocation where ip_end > inet_aton("%s") limit 1'%ip)
     location=cursor.fetchone()[0]
     cursor.close()
     return location
@@ -32,7 +32,7 @@ def Checkauth(mac,cpuid,appid,aucode,ip,localtime):
                 decode=Aucode(aucode,1)
                 decode_info=decode.main()
                 if isinstance(decode_info,list):
-                    if cpuid not in decode_info and mac not in decode_info and appid not in  decode_info:
+                    if cpuid not in decode_info or mac not in decode_info or appid not in  decode_info:
                         akey.dostate=1
                         akey.dotime=localtime
                         akey.save()

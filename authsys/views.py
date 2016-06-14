@@ -34,39 +34,46 @@ def manage_auth(request):
         mac=request.POST['mac']
         cpuid=request.POST['cpuid']
         appid=request.POST['appid']
-        find_list=authorization.objects.filter(Q(mac__mac=mac)&Q(appid=appid))
+        find_list=authorization.objects.filter(mac__mac=mac,mac__cpuid=cpuid,appid=appid)
+        msg=pub_msg.objects.all()[0]
+        suc_msg=msg.successmsg
+        err_msg=msg.errormsg
+        time_msg=msg.timemsg
         if len(find_list) != 0:
             auinfo=find_list[0]
-            if int(auinfo.austate) != 1:
-                manage['aucode']=auinfo.aucode            
-                return HttpResponse(json.dumps(manage ,indent=4,ensure_ascii=False), 'application/javascript')
+            if int(auinfo.austate) == 0:
+                redict={'code':'0','aucode':auinfo.aucode,'msg':suc_msg,'time':auinfo.e_time}
+                return HttpResponse(json.dumps(redict ,indent=4,ensure_ascii=False), 'application/javascript')
+            elif int(auinfo.austate) == 2:
+                redict={'code':'-9002','aucode':'null','msg':time_msg,'time':"null"}
+                return HttpResponse(json.dumps(redict ,indent=4,ensure_ascii=False), 'application/javascript')
             else:
-                redict={'code':'-9001'}
+                redict={'code':'-9001','aucode':'null','msg':err_msg,'time':"null"}
                 return HttpResponse(json.dumps(redict ,indent=4,ensure_ascii=False), 'application/javascript')
         else:
             try:
-                fkey=permachine_info.objects.get(mac=mac)
-                find_per_list=perauthorization.objects.filter(Q(mac__mac=mac)&Q(appid=appid))
+                fkey=premachine_info.objects.get(mac=mac)
+                find_per_list=preauthorization.objects.filter(mac__mac=mac,appid=appid)
                 if len(find_per_list) != 0:
-                    update_perauth=find_per_list[0]
-                    update_perauth.register_time=localtime
-                    update_perauth.ipaddress=ip
-                    update_perauth.save()
-                    redict={'code':'1'}
+                    update_preauth=find_per_list[0]
+                    update_preauth.register_time=localtime
+                    update_preauth.ipaddress=ip
+                    update_preauth.save()
+                    redict={'code':'1','aucode':'null','msg':err_msg,'time':"null"}
                     return HttpResponse(json.dumps(redict ,indent=4,ensure_ascii=False), 'application/javascript')
                 else:
-                    create_perauth=perauthorization.objects.create(mac=fkey,appid=appid,cpuid=cpuid,register_time=localtime,ipaddress=ip)
-                    create_perauth.save()
-                    redict={'code':'2'}
+                    create_preauth=preauthorization.objects.create(mac=fkey,appid=appid,cpuid=cpuid,register_time=localtime,ipaddress=ip)
+                    create_preauth.save()
+                    redict={'code':'2','aucode':'null','msg':err_msg,'time':"null"}
                     return HttpResponse(json.dumps(redict ,indent=4,ensure_ascii=False), 'application/javascript')
-            except permachine_info.DoesNotExist:
-                macnum=int(mac,16)
-                create_permachine=permachine_info.objects.create(mac=mac,cpuid=cpuid,macnum=macnum)
-                create_permachine.save()
-                pkey=permachine_info.objects.get(mac=mac)
-                create_perauth=perauthorization.objects.create(mac=pkey,appid=appid,cpuid=cpuid,register_time=localtime,ipaddress=ip)
-                create_perauth.save()
-                redict={'code':'2'}
+            except premachine_info.DoesNotExist:
+                macnum=int(str(mac),16)
+                create_premachine=premachine_info.objects.create(mac=mac,cpuid=cpuid,macnum=macnum)
+                create_premachine.save()
+                pkey=premachine_info.objects.get(mac=mac)
+                create_preauth=preauthorization.objects.create(mac=pkey,appid=appid,cpuid=cpuid,register_time=localtime,ipaddress=ip)
+                create_preauth.save()
+                redict={'code':'2','aucode':'null','msg':err_msg,'time':"null"}
                 return HttpResponse(json.dumps(redict ,indent=4,ensure_ascii=False), 'application/javascript')
 
 def check_auth(request):
@@ -212,7 +219,7 @@ def del_group(request):
         grouplist=[]
         for agency in gkey.values_list('agency'):
             grouplist.append(agency[0])
-        machine_info.objects.filter(agency__in=grouplist).delete
+        machine_info.objects.filter(agency__in=grouplist).delete()
         gkey.delete()
     return HttpResponse('ok')
 
@@ -296,9 +303,10 @@ def add_relate(request):
     try:
         pid=request.POST['pid']
         appid=request.POST['appid']
-        playid=request.POST['playid']
+        liveplayid=request.POST['liveplayid']
+        vodplayid=request.POST['vodplayid']
         if len(package_relateapp.objects.filter(packageid_id=pid,appid=appid)) == 0:
-            add=package_relateapp.objects.create(packageid_id=pid,appid=appid,playid=playid)
+            add=package_relateapp.objects.create(packageid_id=pid,appid=appid,vodplayid=vodplayid,liveplayid=liveplayid)
             add.save()
             return HttpResponse('ok')
         else:
@@ -310,9 +318,10 @@ def add_relate(request):
 def update_relate(request):
     ''' 更新关联'''
     pid=request.POST['pid']
-    playid=request.POST['playid']
+    liveplayid=request.POST['liveplayid']
+    vodplayid=request.POST['vodplayid']
     appid=request.POST['appid']
-    package_relateapp.objects.filter(packageid_id=pid,appid=appid).update(playid=playid)
+    package_relateapp.objects.filter(packageid_id=pid,appid=appid).update(vodplayid=vodplayid,liveplayid=liveplayid)
     return HttpResponse('ok')
 
 @login_required()
@@ -388,7 +397,8 @@ def auth_info(request, template_name):
             mac=request.POST['mac']
             cpuid=request.POST['cpuid']
             appid=request.POST['appid']
-            playid=request.POST['playid']
+            liveplayid=request.POST['liveplayid']
+            vodplayid=request.POST['vodplayid']
             s_time=request.POST['s_time']
             autime=request.POST['autime']
             austate=request.POST['austate']
@@ -397,14 +407,14 @@ def auth_info(request, template_name):
             if request.POST['action'] == 'add':
                 if len(authorization.objects.filter(mac_id=pid,appid=appid)) == 0:
                     e_time=stime_change_time(time_change_stime(s_time)+(int(autime)*86400))
-                    new=authorization.objects.create(mac_id=pid,appid=appid,playid=playid,s_time=s_time,e_time=e_time,autime=autime,aucode=aucode)
+                    new=authorization.objects.create(mac_id=pid,appid=appid,vodplayid=vodplayid,liveplayid=liveplayid,s_time=s_time,e_time=e_time,autime=autime,aucode=aucode,austate=austate)
                     new.save()
                     return HttpResponse('ok')
                 else:return HttpResponse('APPID已存在')
             else:
                 pk=request.POST['pk']
                 e_time=stime_change_time(time_change_stime(s_time)+(int(autime)*86400))
-                authorization.objects.filter(pk=pk).update(playid=playid,s_time=s_time,e_time=e_time,autime=autime,aucode=aucode)
+                authorization.objects.filter(pk=pk).update(vodplayid=vodplayid,liveplayid=liveplayid,s_time=s_time,e_time=e_time,autime=autime,aucode=aucode,austate=austate)
                 return HttpResponse('ok')
         except Exception,e:
             return HttpResponse(e)
@@ -416,7 +426,7 @@ def auth_info(request, template_name):
             mac=mkey.mac
             cpuid=mkey.cpuid
             agency=mkey.agency
-        search_fields = ['appid','playid','austate']
+        search_fields = ['appid','austate']
         return get_datatables_records(
             request,
             queryset,
@@ -517,11 +527,12 @@ def do_auth(request):
         cpuid=request.POST['cpuid']
         pid=request.POST['pid']
         appid=request.POST['appid']
-        playid=request.POST['playid']
+        vodplayid=request.POST['vodplayid']
+        liveplayid=request.POST['liveplayid']
         autime=request.POST['autime']
         getcode=Aucode("%s+%s+%s"%(mac,cpuid,appid),0)
         aucode=getcode.main()
-        preauth=Dopreauth(mac,cpuid,appid,playid,aucode,autime)
+        preauth=Dopreauth(mac,cpuid,appid,liveplayid,vodplayid,aucode,autime)
         if preauth.main() == 0:
             preauthorization.objects.filter(id=pid).delete()
         return HttpResponse('ok')
@@ -575,3 +586,27 @@ def del_ticker(request):
     if len(tids) > 0:
         ticker_info.objects.filter(id__in=tids).delete()
     return HttpResponse('ok')
+
+@login_required()
+def pubmsg(request, template_name):
+    queryset=pub_msg.objects.all()
+    search_fields = []
+    return get_datatables_records(
+        request,
+        queryset,
+        search_fields,
+        template_name,
+        extra_context={
+        })
+
+@login_required()
+def update_msg(request):
+    try:
+        pk=request.POST['upid']
+        successmsg=request.POST['successmsg']
+        errormsg=request.POST['errormsg']
+        timemsg=request.POST['timemsg']
+        pub_msg.objects.filter(pk=pk).update(successmsg=successmsg,errormsg=errormsg,timemsg=timemsg)
+        return HttpResponse('ok')
+    except Exception,e:
+        return HttpResponse(e)

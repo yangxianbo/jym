@@ -65,7 +65,8 @@
                                         <th style="text-align: center;vertical-align:middle;" width="45px"><input id="checkAll" type="checkbox" ></th>
                                         <th>MAC</th>
                                         <th>APPID</th>
-                                        <th>关联列表ID</th>
+                                        <th>关联直播列表ID</th>
+                                        <th>关联点播列表ID</th>
                                         <th>授权时长</th>
 										<th>授权开始时间</th>
 										<th>授权结束时间</th>
@@ -83,7 +84,8 @@
                                             <td style="text-align: center;vertical-align:middle;"><input id="inputCheckbox{{ node.id }}" type="checkbox" name="checkbox" value="{{ node.id }}" /></td>
                                             <td><span class="badge">{{ mac }}</span></td>
 											<td>{{ node.appid }}</td>
-                                            <td>{{ node.playid }}</td>
+                                            <td>{{ node.liveplayid }}</td>
+                                            <td>{{ node.vodplayid }}</td>
                                             <td>{{ node.autime }}天</td>
                                             <td>{{ node.s_time }}</td>
                                             <td>{{ node.e_time }}</td>
@@ -188,9 +190,15 @@
                                                 </div>
                                             </div>
                                             <div class="form-group">
-                                                <label for="" class="col-sm-2 control-label">列表ID</label>
+                                                <label for="" class="col-sm-2 control-label">直播列表ID</label>
                                                 <div class="col-sm-10">
-                                                    <input type="text" name="playid" id="playid" class="form-control input-sm"  placeholder="列表ID" style="width:100px;" check-type="required">
+                                                    <input type="text" name="liveplayid" id="liveplayid" class="form-control input-sm"  placeholder="直播列表ID" style="width:100px;" check-type="required">
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="" class="col-sm-2 control-label">点播列表ID</label>
+                                                <div class="col-sm-10">
+                                                    <input type="text" name="vodplayid" id="vodplayid" class="form-control input-sm"  placeholder="点播列表ID" style="width:100px;" check-type="required">
                                                 </div>
                                             </div>
                                             <div class="form-group">
@@ -295,7 +303,7 @@
 				table:'authorization'
             }, function (e) {
                 var dataObj=eval("("+e+")");
-                var fields = ['appid','playid','aucode','autime','s_time','e_time','austate','dotime','dostate'];
+                var fields = ['appid','liveplayid','vodplayid','aucode','autime','s_time','e_time','austate','dotime','dostate'];
 				$('#pk').val(dataObj[0]['pk']);
                 $.each(fields, function(n,value) {
                     $('#' + value).val(dataObj[0]['fields'][value])

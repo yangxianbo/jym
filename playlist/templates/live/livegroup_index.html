@@ -113,7 +113,7 @@
                                         <tr id="tr_id_{{ node.id }}">
 
                                             <td style="text-align: center;vertical-align:middle;"><input id="inputCheckbox{{ node.id }}" type="checkbox" name="checkbox" value="{{ node.id }}" /></td>
-                                            <td><span class="badge">{{ node.livegroupid }}</span></td>
+                                            <td><a href="/playlist/liveadv/?pk={{ node.pk }}" title="查看关联广告信息" ><span class="badge">{{ node.livegroupid }}</span></a></td>
 											<td>{{ node.livegroupname }}</td>
 											<td>{{ node.livegroupdesc }}</td>
 											<td>{{ node.liverelate_id }}</td>

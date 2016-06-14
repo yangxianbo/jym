@@ -27,7 +27,7 @@ def quest_app(request):
         appid=request.POST['appid']
         try:
             app=appinfo.objects.get(appid=appid)
-            data={'id':app.appid,'folder':app.appfolder,'version':app.version,'size':app.appsize,'url':app.downloadurl,'state':app.upstate,'logo':app.logourl}
+            data={'id':app.appid,'folder':app.appfolder,'version':app.version,'size':app.appsize,'url':app.downloadurl,'state':app.upstate}
             return HttpResponse(json.dumps(data), 'application/javascript')
         except Exception:
             raise Http404
@@ -128,9 +128,18 @@ def force_apk(request):
 
 @login_required()
 def normal_apk(request):
-    ''' 强制状态'''
+    ''' 普通'''
     pk=request.POST['pk']
     tids = [ int(i) for i in pk.split(',') ]
     if len(tids) > 0:
         appinfo.objects.filter(pk__in=tids).update(upstate=1)
+    return HttpResponse('ok')
+
+@login_required()
+def silent_apk(request):
+    ''' 静默'''
+    pk=request.POST['pk']
+    tids = [ int(i) for i in pk.split(',') ]
+    if len(tids) > 0:
+        appinfo.objects.filter(pk__in=tids).update(upstate=2)
     return HttpResponse('ok')

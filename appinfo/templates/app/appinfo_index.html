@@ -57,6 +57,7 @@
 {% ifequal request.user.userprofile.is_modify "0" %}
 									<td style="padding:5px 0px 5px 5px"><button type="button" class="btn btn-default btn-sm" onclick="force_batch('/app/forceapk')"><li class="glyphicon glyphicon-check"></li>&nbsp;批量设置强制更新</button></td>
 									<td style="padding:5px 0px 5px 5px"><button type="button" class="btn btn-default btn-sm" onclick="normal_batch('/app/normalapk')"><li class="glyphicon glyphicon-ok"></li>&nbsp;批量设置普通更新</button></td>
+									<td style="padding:5px 0px 5px 5px"><button type="button" class="btn btn-default btn-sm" onclick="silent_batch('/app/silentapk')"><li class="glyphicon glyphicon-cloud-download"></li>&nbsp;批量设置静默更新</button></td>
 {% endifequal %}
 
                                 </tr>
@@ -374,5 +375,26 @@
 			}
 		}
 
+		function silent_batch(url){
+			if (!confirm("确认要设置为静默更新？")) {
+				return false;
+			}
+
+			var chk_value = [];
+			$("input[id*='inputCheckbox']:checked").each(function () {
+				chk_value.push($(this).val())
+			});
+			if (chk_value.length != 0) {
+				$.post(url, {
+					pk: chk_value.join(",")
+				}, function (e) {
+					if (e == 'ok') {
+						window.location.reload();
+					} else {
+						alert(e)
+					}
+				});
+			}
+		}
     </script>
 {% endblock %}

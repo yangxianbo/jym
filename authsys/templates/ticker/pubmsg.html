@@ -1,0 +1,138 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+    <div class="wrapper">
+        <header class="main-header">
+            <!-- 导航 -->
+            {% include "sysBase/navbar_custom_menu.html" %}
+        </header>
+        <!-- 左侧菜单  -->
+        {% include "sysBase/left_index.html" %}
+
+
+        <!-- 内容部分 -->
+        <div class="content-wrapper">
+            <!-- Content Header (Page header) -->
+            <section class="content-header">
+                <h1>
+                    公开信息管理
+					<small>获取授权时的消息</small>
+                </h1>
+{#                <ol class="breadcrumb">#}
+{#                    <li><a href="#"><i class="fa fa-dashboard"></i> 主页</a></li>#}
+{#                    <li class="active">节目源</li>#}
+{#                </ol>#}
+            </section>
+
+            <!-- Main content -->
+            <section class="content">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="box">
+
+                            <div class="table-responsive">
+                                <table class="table table-hover table-bordered">
+                                    <thead>
+                                    <tr>
+                                        <th>信息类型</th>
+                                        <th>内容</th>
+                                        <th>信息类型</th>
+                                        <th>内容</th>
+                                        <th>信息类型</th>
+                                        <th>内容</th>
+										<th>操作</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+<script src="/statics/plugins/jQuery/jQuery-2.1.4.min.js" type="text/javascript"></script>
+<script src="/statics/js/m.js"></script>
+
+                                    {% for node in object_result.object_list %}
+                                        <tr id="tr_id_{{ node.id }}">
+
+                                            <td><span class="badge">成功消息</span></td>
+                                            <td>{{ node.successmsg }}</td>
+                                            <td><span class="badge">失败消息</span></td>
+                                            <td>{{ node.errormsg }}</td>
+                                            <td><span class="badge">超时消息</span></td>
+                                            <td>{{ node.timemsg }}</td>
+    										<td>
+<div class="modal fade" id="update_group_{{ node.id }}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+ <div class="modal-dialog modal-dialog-center modal-sm">
+  <div class="modal-content">
+
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+		&nbsp;修改消息内容    
+	</div>
+
+	<div class="modal-body">
+	<table class="table" id="update_tb_{{ node.id }}">  
+	<tr>  
+		<td><input type='hidden' name='upid' value="{{ node.id }}" /></td>
+	</tr>
+	<tr>  
+		<td>成功消息</td>
+		<td><input type='text' name='successmsg' value="{{ node.successmsg }}" /></td>
+	</tr>
+	<tr>  
+		<td>失败消息:</td>
+		<td><input type='text' name='errormsg' value="{{ node.errormsg }}" /></td>
+	</tr>
+	<tr>  
+		<td>超时消息:</td>
+		<td><input type='text' name='timemsg' value="{{ node.timemsg }}" /></td>
+	</tr>
+	</table>
+	<button class="btn btn-info" type="submit" id="update_sub_{{ node.id }}">修改</button>
+    <script type="text/javascript">
+        $("#update_sub_{{ node.id }}").click(function(){
+                    var data=$('#update_tb_{{ node.id }}').Data();
+                    $.post("/authorization/updatemsg",data,function(e){
+                    if (e == 'ok') {
+                        alert("修改消息成功！")
+                        window.location.reload();
+                    } else {
+                        alert(e)
+                    }
+                    })
+                        })
+
+    </script>
+	</div>
+
+	<div class="modal-footer">
+		copyright joybig
+	</div>
+</div>
+</div>
+</div>
+{% ifequal request.user.userprofile.is_modify "0" %}
+						  <a data-toggle="modal" data-target="#update_group_{{ node.id }}" style="cursor:pointer"> <li class="glyphicon glyphicon-cog"  title="修改" ></li></a>
+{% endifequal %}
+											</td>
+
+                                        </tr>
+                                    {% endfor %}
+
+                                </table>
+                                {% include "sysBase/pagination.html" %}
+                            </div><!-- /.box-body -->
+                            <div style="height:15px;"></div>
+                        </div><!-- /.box -->
+                    </div><!-- /.col -->
+                </div><!-- /.row -->
+
+
+            </section><!-- /.content -->
+        </div><!-- /.content-wrapper -->
+
+        <!-- 工具条切换风格 -->
+        {% include "sysBase/sidebar.html" %}
+        <div class='control-sidebar-bg'></div>
+    </div><!-- ./wrapper -->
+
+
+{% endblock %}
+{% block js_append %}
+{% endblock %}
