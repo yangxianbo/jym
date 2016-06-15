@@ -126,15 +126,16 @@ def live_index(request, template_name):
             classname=request.POST['classname']
             playaddress=request.POST['playaddress']
             mstatus=request.POST['mstatus']
+            picurl=request.POST['picurl']
             if request.POST['action'] == 'add':
                 if len(liveplaylist.objects.filter(playaddress=playaddress,playname=playname)) == 0:
-                    new=liveplaylist.objects.create(channelid=channelid,playname=playname,classname=classname,playaddress=playaddress,mstatus=mstatus)
+                    new=liveplaylist.objects.create(channelid=channelid,playname=playname,classname=classname,playaddress=playaddress,mstatus=mstatus,picurl=picurl)
                     new.save()
                     return HttpResponse('ok')
                 else:return HttpResponse('播放地址已存在')
             else:
                 pk=request.POST['pk']
-                liveplaylist.objects.filter(pk=pk).update(channelid=channelid,playname=playname,classname=classname,playaddress=playaddress,mstatus=mstatus)
+                liveplaylist.objects.filter(pk=pk).update(channelid=channelid,playname=playname,classname=classname,playaddress=playaddress,mstatus=mstatus,picurl=picurl)
                 return HttpResponse('ok')
         except Exception,e:
             return HttpResponse(e)

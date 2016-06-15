@@ -36,7 +36,7 @@ class Recoder_list():
             playtype=playlist[0]
             if playtype == 'live':
                 classname=playlist[1]
-                channelid=playlist[2]
+                channelid=int(playlist[2])
                 playname=playlist[3]
                 playaddress=playlist[4]
                 self._add_live(classname,channelid,playname,playaddress)

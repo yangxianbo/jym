@@ -41,14 +41,19 @@ def manage_auth(request):
         time_msg=msg.timemsg
         if len(find_list) != 0:
             auinfo=find_list[0]
+            mkey=machine_info.objects.get(mac=mac)
+            macnum=mkey.macnum
             if int(auinfo.austate) == 0:
-                redict={'code':'0','aucode':auinfo.aucode,'msg':suc_msg,'time':auinfo.e_time}
+                return_msg="%s,Number:%s,APPID:%s"%(suc_msg,macnum,appid)
+                redict={'code':'0','aucode':auinfo.aucode,'msg':return_msg,'time':auinfo.e_time}
                 return HttpResponse(json.dumps(redict ,indent=4,ensure_ascii=False), 'application/javascript')
             elif int(auinfo.austate) == 2:
-                redict={'code':'-9002','aucode':'null','msg':time_msg,'time':"null"}
+                return_msg="%s,Number:%s,APPID:%s"%(time_msg,macnum,appid)
+                redict={'code':'-9002','aucode':'null','msg':return_msg,'time':"null"}
                 return HttpResponse(json.dumps(redict ,indent=4,ensure_ascii=False), 'application/javascript')
             else:
-                redict={'code':'-9001','aucode':'null','msg':err_msg,'time':"null"}
+                return_msg="%s,Number:%s,APPID:%s"%(err_msg,macnum,appid)
+                redict={'code':'-9001','aucode':'null','msg':return_msg,'time':"null"}
                 return HttpResponse(json.dumps(redict ,indent=4,ensure_ascii=False), 'application/javascript')
         else:
             try:
@@ -59,12 +64,16 @@ def manage_auth(request):
                     update_preauth.register_time=localtime
                     update_preauth.ipaddress=ip
                     update_preauth.save()
-                    redict={'code':'1','aucode':'null','msg':err_msg,'time':"null"}
+                    macnum=fkey.macnum
+                    return_msg="%s,Number:%s,APPID:%s"%(err_msg,macnum,appid)
+                    redict={'code':'1','aucode':'null','msg':return_msg,'time':"null"}
                     return HttpResponse(json.dumps(redict ,indent=4,ensure_ascii=False), 'application/javascript')
                 else:
                     create_preauth=preauthorization.objects.create(mac=fkey,appid=appid,cpuid=cpuid,register_time=localtime,ipaddress=ip)
                     create_preauth.save()
-                    redict={'code':'2','aucode':'null','msg':err_msg,'time':"null"}
+                    macnum=fkey.macnum
+                    return_msg="%s,Number:%s,APPID:%s"%(err_msg,macnum,appid)
+                    redict={'code':'2','aucode':'null','msg':return_msg,'time':"null"}
                     return HttpResponse(json.dumps(redict ,indent=4,ensure_ascii=False), 'application/javascript')
             except premachine_info.DoesNotExist:
                 macnum=int(str(mac),16)
@@ -73,7 +82,8 @@ def manage_auth(request):
                 pkey=premachine_info.objects.get(mac=mac)
                 create_preauth=preauthorization.objects.create(mac=pkey,appid=appid,cpuid=cpuid,register_time=localtime,ipaddress=ip)
                 create_preauth.save()
-                redict={'code':'2','aucode':'null','msg':err_msg,'time':"null"}
+                return_msg="%s,Number:%s,APPID:%s"%(err_msg,macnum,appid)
+                redict={'code':'2','aucode':'null','msg':return_msg,'time':"null"}
                 return HttpResponse(json.dumps(redict ,indent=4,ensure_ascii=False), 'application/javascript')
 
 def check_auth(request):
