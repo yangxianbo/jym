@@ -60,40 +60,37 @@ def up_logo(request):
 @login_required()
 def livegroup_index(request, template_name):
     queryset=liveplaygroup.objects.all()
-    search_fields = ['livegroupid']
+    live=liveall.objects.all()
+    search_fields = ['livegroupname']
     return get_datatables_records(
         request,
         queryset,
         search_fields,
         template_name,
         extra_context={
+            'liveall':live,
         })
 
 @login_required()
 def add_livegroup(request):
     try:
-        livegroupid=request.POST['livegroupid']
         livegroupname=request.POST['livegroupname']
         livegroupdesc=request.POST['livegroupdesc']
         liverelate_id=request.POST['liverelate_id']
-        if len(liveplaygroup.objects.filter(livegroupid=livegroupid)) == 0:
-            add=liveplaygroup.objects.create(livegroupid=livegroupid,livegroupname=livegroupname,livegroupdesc=livegroupdesc,liverelate_id=liverelate_id)
-            add.save()
-            return HttpResponse('ok')
-        else:
-            return HttpResponse('已存在相同APPID')
+        add=liveplaygroup.objects.create(livegroupname=livegroupname,livegroupdesc=livegroupdesc,liverelate_id=liverelate_id)
+        add.save()
+        return HttpResponse('ok')
     except Exception,e:
         return HttpResponse(e)
 
 @login_required()
 def update_livegroup(request):
     pk=request.POST['pid']
-    livegroupid=request.POST['livegroupid']
     livegroupname=request.POST['livegroupname']
     livegroupdesc=request.POST['livegroupdesc']
     liverelate_id=request.POST['liverelate_id']
     cid_list=liverelate_id.split(',')
-    liveplaygroup.objects.filter(pk=pk,livegroupid=livegroupid).update(livegroupname=livegroupname,livegroupdesc=livegroupdesc,liverelate_id=liverelate_id)
+    liveplaygroup.objects.filter(pk=pk).update(livegroupname=livegroupname,livegroupdesc=livegroupdesc,liverelate_id=liverelate_id)
     for cid in cid_list:
         if len(liveplaygroup_adv.objects.filter(livegroupid_id=pk,channelid=cid)) == 0:
             newadv=liveplaygroup_adv.objects.create(livegroupid_id=pk,channelid=cid)
@@ -208,7 +205,7 @@ def normal_live(request):
                                  
 @login_required()
 def relate_live(request):
-    ''' 关联直播组'''
+    ''' 关联分类'''
     gpk=request.POST['livegroupid']
     pk=request.POST['pk'].strip(',')
     relate_list=liveplaygroup.objects.filter(pk=gpk).values_list('liverelate_id')[0][0]
@@ -281,9 +278,10 @@ def live_adv(request, template_name):
         pkey=liveplaygroup.objects.get(pk=_pid)
         channel_list=pkey.liverelate_id.split(',')
         c_dict={}
-        for channelid in channel_list:
-            pname=liveplaylist.objects.get(id=channelid).playname
-            c_dict[channelid]=pname
+        if channel_list != [""]:
+            for channelid in channel_list:
+                pname=liveplaylist.objects.get(id=channelid).playname
+                c_dict[channelid]=pname
         queryset=liveplaygroup_adv.objects.filter(livegroupid=pkey)
     search_fields = []
     return get_datatables_records(
@@ -322,3 +320,64 @@ def dis_adv(request):
     if len(tids) > 0:
         liveplaygroup_adv.objects.filter(id__in=tids).update(advstate=1)
     return HttpResponse('ok')
+
+@login_required()
+def live_all(request, template_name):
+    queryset=liveall.objects.all()
+    search_fields = []
+    return get_datatables_records(
+        request,
+        queryset,
+        search_fields,
+        template_name,
+        extra_context={
+        })
+
+@login_required()
+def add_liveall(request):
+    try:
+        liverelate_group=request.POST['liverelate_group']
+        livedesc=request.POST['livedesc']
+        if len(liveall.objects.filter(livedesc=livedesc)) == 0:
+            add=liveall.objects.create(livedesc=livedesc,liverelate_group=liverelate_group)
+            add.save()
+            return HttpResponse('ok')
+        else:
+            return HttpResponse('已存在相同组名称')
+    except Exception,e:
+        return HttpResponse(e)
+
+@login_required()
+def update_liveall(request):
+    pk=request.POST['pid']
+    liverelate_group=request.POST['liverelate_group']
+    livedesc=request.POST['livedesc']
+    if len(liveall.objects.filter(livedesc=livedesc)) == 0:
+        liveall.objects.filter(pk=pk).update(livedesc=livedesc,liverelate_group=liverelate_group)
+    else:
+        return HttpResponse('已存在相同组名称')
+    return HttpResponse('ok')
+
+@login_required()
+def del_liveall(request):
+    ''' 删除关联'''
+    pk=request.POST['pk']
+    tids = [ int(i) for i in pk.split(',') ]
+    if len(tids) > 0:
+        liveall.objects.filter(id__in=tids).delete()
+    return HttpResponse('ok')
+
+@login_required()
+def relate_liveall(request):
+    ''' 关联直播组'''
+    gpk=request.POST['liveid']
+    pk=request.POST['pk'].strip(',')
+    relate_list=liveall.objects.filter(pk=gpk).values_list('liverelate_group')[0][0]
+    cid_list=pk.split(',')
+    union_list=list(set(cid_list).union(set(relate_list)))
+    if len(list(set(cid_list).difference(set(relate_list)))) != 0:
+        union_str=','.join(union_list).strip(',')
+        liveall.objects.filter(pk=gpk).update(liverelate_group=union_str)
+        return HttpResponse('ok')
+    else:
+        return HttpResponse('ok')

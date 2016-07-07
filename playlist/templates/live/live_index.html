@@ -86,7 +86,6 @@
                                         <th>频道号</th>
                                         <th>关联ID(自增)</th>
                                         <th>节目名称</th>
-										<th>分类名称</th>
 										<th>播放地址</th>
 										<th>维护图片下载地址</th>
 										<th>维护状态</th>
@@ -102,9 +101,8 @@
                                             <td><span class="badge">{{ node.channelid }}</span></td>
                                             <td>{{ node.id }}</td>
                                             <td>{{ node.playname }}</td>
-                                            <td>{{ node.classname }}</td>
-                                            <td>{{ node.playaddress }}</td>
-                                            <td>{{ node.picurl }}</td>
+                                            <td>{{ node.playaddress|cut|safe }}</td>
+                                            <td>{{ node.picurl|cut|safe }}</td>
 											{% ifequal node.mstatus '1' %}
                                             <td><font color="green">正常</font></td>
 											{% else %}
@@ -164,14 +162,14 @@
                     <div class="modal-content">
                         <div class="modal-header">
                             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                            <h4 class="modal-title" id="exampleModalLabel">批量关联直播组</h4>
+                            <h4 class="modal-title" id="exampleModalLabel">批量关联分类</h4>
                         </div>
                         <div class="modal-body">
                             <div class="row">
                                 <div class="col-md-12 box box-success">
                                     <form id="select_data" class="form-horizontal highlight" role="form"  style="width:800px; margin-top: 10px;"  onsubmit="return false">
                                             <div class="form-group">
-                                                <label for="" class="col-sm-2 control-label">直播组选择</label>
+                                                <label for="" class="col-sm-2 control-label">分类选择</label>
                                                 <div class="col-sm-10">
                                                    <select  name="livegroupid" id="livegroupid" style="height:34px;width:200px">
                                                     {% for row in livegroup %}

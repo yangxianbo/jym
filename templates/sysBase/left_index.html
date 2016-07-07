@@ -48,7 +48,8 @@
 				</a>
 				<ul class="treeview-menu">
 					<li {% if '/playlist/uplist/' == request.path  %}class="active"{% endif  %}><a href="/playlist/uplist/"><i class="fa fa-angle-double-right"></i> 上传列表</a></li>
-					<li {% if '/playlist/livegroupindex/' == request.path  %}class="active"{% endif  %}><a href="/playlist/livegroupindex/"><i class="fa fa-angle-double-right"></i> 直播组管理</a></li>
+					<li {% if '/playlist/liveall/' == request.path  %}class="active"{% endif  %}><a href="/playlist/liveall/"><i class="fa fa-angle-double-right"></i> 直播组管理</a></li>
+					<li {% if '/playlist/livegroupindex/' == request.path  %}class="active"{% endif  %}><a href="/playlist/livegroupindex/"><i class="fa fa-angle-double-right"></i> 分类管理</a></li>
 					<li {% if '/playlist/liveindex/' == request.path  %}class="active"{% endif  %}><a href="/playlist/liveindex/"><i class="fa fa-angle-double-right"></i> 直播频道管理</a></li>
 				</ul>
 			</li>

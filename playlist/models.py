@@ -8,9 +8,12 @@ class upload_file(models.Model):
     filepath=models.CharField('文件路径',max_length=255,null=True,blank=True)
     createtime=models.CharField('文件上传时间',max_length=255,null=True,blank=True)
 
+class liveall(models.Model):
+    liverelate_group=models.TextField('播放大组关联的小组',max_length=1000,default="")
+    livedesc=models.CharField('播放大组描述',max_length=255,null=True,blank=True)
+
 class liveplaygroup(models.Model):
-    livegroupname=models.CharField('播放组名称',max_length=50,null=True,blank=True)
-    livegroupid=models.CharField('播放组ID',max_length=20,unique=True)
+    livegroupname=models.CharField('分类名称',max_length=50,null=True,blank=True)
     livegroupdesc=models.CharField('播放组描述',max_length=255,null=True,blank=True)
     liverelate_id=models.TextField('关联的节目ID',max_length=1000,default="")
 
@@ -23,7 +26,6 @@ class liveplaygroup_adv(models.Model):
 class liveplaylist(models.Model):
     channelid=models.CharField('频道ID',max_length=20,null=True,blank=True)
     playaddress=models.CharField('播放地址',max_length=255,null=True,blank=True)
-    classname=models.CharField('分类名称',max_length=255,null=True,blank=True)
     playname=models.CharField('节目名称',max_length=255,unique=True)
     mstatus=models.CharField('维护状态',max_length=20,default=1)
     picurl=models.CharField('维护图片下载地址',max_length=255,default="")

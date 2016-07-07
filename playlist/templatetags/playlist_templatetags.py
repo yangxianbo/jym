@@ -14,5 +14,16 @@ def check_name(cid,arg):
     c_dict=json.loads(arg)
     return c_dict[cid]
 
+def cut(value):
+    if value != None and value != "":
+        if len(value) >= 20:
+            cutstr=value[0:20]+"..."
+        else:
+            cutstr=value
+    else:
+        cutstr="无"
+    return cutstr
+
+register.filter(cut)
 register.filter(check_name)
 
